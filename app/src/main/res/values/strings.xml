@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">psmart</string>
+    <string name="title_activity_card_reader">CardReaderActivity</string>
+</resources>

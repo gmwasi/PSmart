@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">psmart</string>
     <string name="title_activity_card_reader">CardReaderActivity</string>
+    <string name="error_auth_failed">Authentication Failed.</string>
 </resources>

@@ -1,9 +1,12 @@
 package org.kenyahmis.psmart;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -24,7 +27,22 @@ public class CardReaderActivity extends AppCompatActivity {
 
         String token = getIntent().getExtras().getString(AppConstants.EXTRA_AUTH_TOKEN, null);
         if (token != null && new Tokenizer(getBaseContext()).compareHash(token)) {
-            readJob();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    Toast.makeText(this, "Please give us your location permissions to continue", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            1);
+                }
+
+            } else {
+                Intent intent = new Intent(getBaseContext(),DeviceScanActivity.class);
+                startActivityForResult(intent,1);
+            }
+
 
         }else{
             setResult(RESULT_CANCELED);
@@ -34,6 +52,14 @@ public class CardReaderActivity extends AppCompatActivity {
             setResult(RESULT_OK, intent);
             finish();
         }
+    }
+private void getPermisions(){
+
+}
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Toast.makeText(getBaseContext(),"Device scanned", Toast.LENGTH_LONG).show();
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void readJob()  {

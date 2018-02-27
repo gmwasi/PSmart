@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toolbar;
 
 import com.acs.bluetooth.Acr1255uj1Reader;
 import com.acs.bluetooth.Acr3901us1Reader;
@@ -674,6 +675,8 @@ public class ReaderSettingsActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reader_settings);
+        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
@@ -789,7 +792,7 @@ public class ReaderSettingsActivity extends AppCompatActivity implements
 
         getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        getActionBar().setTitle(mDeviceName);
+
         getActionBar().setDisplayHomeAsUpEnabled(true);
     }
 

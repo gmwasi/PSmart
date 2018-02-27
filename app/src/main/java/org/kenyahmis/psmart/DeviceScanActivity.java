@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
@@ -37,9 +39,9 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.activity_device_scan);
         super.onCreate(savedInstanceState);
-        getActionBar().setTitle(R.string.title_devices);
+        setContentView(R.layout.activity_device_scan);
+        Toolbar toolbar = findViewById(R.id.toolbar);
 
         mHandler = new Handler();
 
@@ -99,6 +101,12 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     @Override
+    public void finish() {
+        setResult(1);
+        super.finish();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -146,9 +154,9 @@ public class DeviceScanActivity extends ListActivity {
             return;
         }
         scanTheDevice(false);
-        final Intent intent = new Intent(this, ReaderSettingsActivity.class);
-        intent.putExtra(ReaderSettingsActivity.EXTRAS_DEVICE_NAME, device.getName());
-        intent.putExtra(ReaderSettingsActivity.EXTRAS_DEVICE_ADDRESS,
+        final Intent intent = new Intent(this, ReaderStatusActivity.class);
+        intent.putExtra(ReaderStatusActivity.EXTRAS_DEVICE_NAME, device.getName());
+        intent.putExtra(ReaderStatusActivity.EXTRAS_DEVICE_ADDRESS,
                 device.getAddress());
         startActivity(intent);
     }

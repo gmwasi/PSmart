@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textView10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/device_info"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView11"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/system_id" />
+
+                <TextView
+                    android:id="@+id/textView_SystemId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView12"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/model_num" />
+
+                <TextView
+                    android:id="@+id/textView_ModelNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView13"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/serial_num" />
+
+                <TextView
+                    android:id="@+id/textView_SerialNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView14"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fw_revision" />
+
+                <TextView
+                    android:id="@+id/textView_FirmwareRevision"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView15"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hw_revision" />
+
+                <TextView
+                    android:id="@+id/textView_HardwareRevision"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView16"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/manufacturer" />
+
+                <TextView
+                    android:id="@+id/textView_Manufacturer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textView01"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status_change_notifications"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView02"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_status" />
+
+                <TextView
+                    android:id="@+id/textView_ReaderState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView03"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/card_status_2" />
+
+                <TextView
+                    android:id="@+id/textView_IccState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView04"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_level" />
+
+                <TextView
+                    android:id="@+id/textView_BatteryLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textview05"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_status" />
+
+                <TextView
+                    android:id="@+id/textView_BatteryStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <Button
+                android:id="@+id/button_Authenticate2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/authenticate" />
+
+            <Button
+                android:id="@+id/button_GetInfo2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/get_device_info" />
+
+            <Button
+                android:id="@+id/button_GetCardStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/get_card_status" />
+
+            <Button
+                android:id="@+id/button_GetBatteryLevel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/get_battery_level" />
+
+            <Button
+                android:id="@+id/button_GetBatteryStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/get_battery_status" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

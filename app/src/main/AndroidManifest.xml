@@ -22,12 +22,17 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter
                 android:label="Write P-Smart Card"
-                android:priority="1" >
-                <category android:name="android.intent.category.DEFAULT"/>
+                android:priority="1">
+                <category android:name="android.intent.category.DEFAULT" />
+
                 <action android:name="org.kenyahmis.psmart.WRITE_DATA" />
-                <data android:mimeType="text/plain"/>
+
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <activity android:name=".DeviceScanActivity" />
+        <activity android:name=".ReaderSettingsActivity" />
+        <activity android:name=".ReaderStatusActivity"></activity>
     </application>
 
 </manifest>

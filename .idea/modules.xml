@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/PSmart.iml" filepath="$PROJECT_DIR$/PSmart.iml" />
+      <module fileurl="file://$PROJECT_DIR$/psmart.iml" filepath="$PROJECT_DIR$/psmart.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/psmartlibrary/psmartlibrary.iml" filepath="$PROJECT_DIR$/psmartlibrary/psmartlibrary.iml" />
     </modules>

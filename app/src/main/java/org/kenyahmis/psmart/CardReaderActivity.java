@@ -1,5 +1,6 @@
 package org.kenyahmis.psmart;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -7,7 +8,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+
 public class CardReaderActivity extends AppCompatActivity {
+    ArrayList<String> errors = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -16,29 +22,33 @@ public class CardReaderActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        String text = getIntent().getExtras().getString("WRITE_DATA");
-        if (text != null) {
-            Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+        String token = getIntent().getExtras().getString(AppConstants.EXTRA_AUTH_TOKEN, null);
+        if (token != null && new Tokenizer(getBaseContext()).compareHash(token)) {
             readJob();
+
+        }else{
+            setResult(RESULT_CANCELED);
+            errors.add(getString(R.string.error_auth_failed));
+            Intent intent = new Intent();
+            intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+            setResult(RESULT_OK, intent);
+            finish();
         }
     }
 
     private void readJob()  {
+        if(true){
+            Intent intent = new Intent();
+            intent.putExtra(AppConstants.EXTRA_MESSAGE,"JSON String");
+            setResult(RESULT_OK, intent);
+
+        }else{
+            Intent intent = new Intent();
+            errors.add("Could not write");
+            intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+            setResult(RESULT_OK, intent);
+        }
         finish();
     }
 
-    @Override
-    public void finish() {
-        setResult(0);
-        super.finish();
-    }
 }

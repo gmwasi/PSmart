@@ -11,7 +11,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class Tokenizer {
     private Context mContext;
-    private String hashed[] = {};
+    private String hashed[] = {"123"};
     public Tokenizer(Context mContext) {
         this.mContext = mContext;
     }
@@ -37,7 +37,7 @@ public class Tokenizer {
 
     public boolean compareHash( String token){
         for (String hash :hashed ) {
-            return hashToken(token).matches(hash);
+            return hashToken(token).matches(hashToken(hash));
         }
         return false;
     }

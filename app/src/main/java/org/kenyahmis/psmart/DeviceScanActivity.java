@@ -51,6 +51,12 @@ public class DeviceScanActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         adapter = new DeviceAdapter(getBaseContext());
         recyclerView.setAdapter(adapter);
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getBaseContext(), new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+
+            }
+        }));
         mBTAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Ask for location permission if not already allowed
@@ -78,6 +84,12 @@ public class DeviceScanActivity extends AppCompatActivity {
         recycler_paired.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         paired_adapter = new DeviceAdapter(getBaseContext());
         recycler_paired.setAdapter(paired_adapter);
+        recycler_paired.addOnItemTouchListener(new RecyclerItemClickListener(getBaseContext(), new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+
+            }
+        }));
     }
 
     private void bluetoothOn() {

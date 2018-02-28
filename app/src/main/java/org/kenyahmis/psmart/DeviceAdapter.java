@@ -53,6 +53,9 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceHold
         bluetoothDevices.clear();
         notifyDataSetChanged();
     }
+    public BluetoothDevice getDevice(int position){
+        return  bluetoothDevices.get(position);
+    }
 
     class DeviceHolder extends RecyclerView.ViewHolder {
         TextView device_name, device_address;

@@ -54,7 +54,7 @@ public class DeviceScanActivity extends AppCompatActivity {
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getBaseContext(), new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-
+                BluetoothDevice device = adapter.getDevice(position)
             }
         }));
         mBTAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -87,7 +87,7 @@ public class DeviceScanActivity extends AppCompatActivity {
         recycler_paired.addOnItemTouchListener(new RecyclerItemClickListener(getBaseContext(), new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-
+                BluetoothDevice device = paired_adapter.getDevice(position);
             }
         }));
     }

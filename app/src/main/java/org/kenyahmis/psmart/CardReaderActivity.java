@@ -1,9 +1,11 @@
 package org.kenyahmis.psmart;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 public class CardReaderActivity extends AppCompatActivity {
     ArrayList<String> errors = new ArrayList<>();
     private BluetoothDevice bluetoothDevice;
+    ProgressDialog progressDialog;
 
 
     @Override
@@ -34,6 +37,7 @@ public class CardReaderActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        progressDialog = new ProgressDialog(this);
 
         String token = getIntent().getExtras().getString(AppConstants.EXTRA_AUTH_TOKEN, null);
         if (token != null && new Tokenizer(getBaseContext()).compareHash(token)) {
@@ -55,16 +59,13 @@ public class CardReaderActivity extends AppCompatActivity {
 
 
         }else{
-            setResult(RESULT_CANCELED);
             errors.add(getString(R.string.error_auth_failed));
             Intent intent = new Intent();
             intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+            setResult(RESULT_CANCELED,intent);
             finish();
         }
     }
-private void getPermisions(){
-
-}
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -81,10 +82,12 @@ private void getPermisions(){
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode ==80){
             if(resultCode ==RESULT_OK){
-                readJob();
+                progressDialog.setCancelable(false);
+                progressDialog.setTitle("Reading Data");
+                progressDialog.show();
                 bluetoothDevice = data.getParcelableExtra("device");
                 if(getIntent().getAction().equals("org.kenyahmis.psmart.ACTION_READ_DATA")){
-                    read();
+                    new ReadTask().execute();
                 }else{
                     String message = getIntent().getExtras().getString("shr_message", null);
                     if(message!=null)
@@ -96,6 +99,35 @@ private void getPermisions(){
                 intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
                 setResult(RESULT_CANCELED, intent);
             }
+        }
+    }
+    private  void hideDialog(){
+        if(progressDialog.isShowing())
+            progressDialog.dismiss();
+    }
+
+    class ReadTask extends AsyncTask<Response,Void,Response> {
+
+        @Override
+        protected void onPostExecute(Response response) {
+            super.onPostExecute(response);
+            hideDialog();
+            if(response!=null){
+                Intent intent = new Intent();
+                intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
+                setResult(RESULT_OK, intent);
+                finish();
+            }else{
+                Intent intent = new Intent();
+                errors.add("Could not read");
+                intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+                setResult(RESULT_CANCELED, intent);
+            }
+        }
+
+        @Override
+        protected Response doInBackground(Response... responses) {
+            return read();
         }
     }
 
@@ -129,7 +161,7 @@ private void getPermisions(){
     }
 
     private Response read(){
-        Toast.makeText(this, "Reading", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Reading", Toast.LENGTH_SHORT).show();
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
 
@@ -137,15 +169,9 @@ private void getPermisions(){
             Response response = pSmartCard.Read();
             Log.d("Response" , response.getMessage());
 
-            Intent intent = new Intent();
-            intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
-            setResult(RESULT_OK, intent);
             return response;
         }
-        Intent intent = new Intent();
-        errors.add("Could not write");
-        intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
-        setResult(RESULT_CANCELED, intent);
+
         return null;
     }
 

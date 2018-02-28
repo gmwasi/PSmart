@@ -23,6 +23,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.acs.bluetooth.BluetoothReader;
+
+import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.PSmartCard;
+
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
@@ -154,11 +159,26 @@ public class DeviceScanActivity extends ListActivity {
             return;
         }
         scanTheDevice(false);
-        final Intent intent = new Intent(this, ReaderStatusActivity.class);
-        intent.putExtra(ReaderStatusActivity.EXTRAS_DEVICE_NAME, device.getName());
-        intent.putExtra(ReaderStatusActivity.EXTRAS_DEVICE_ADDRESS,
-                device.getAddress());
-        startActivity(intent);
+
+        BluetoothReaderInitializer initializer = new BluetoothReaderInitializer(this, device.getAddress());
+        Toast.makeText(this, "initialized initializer", Toast.LENGTH_SHORT).show();
+
+        String msg = initializer.initialize();
+
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+//        BluetoothReader reader = initializer.getReader();
+//        PSmartCard pSmartCard = new PSmartCard(reader);
+//        Response response = pSmartCard.Read();
+//
+//        Toast.makeText(this, response.getMessage(), Toast.LENGTH_SHORT).show();
+
+
+
+//        final Intent intent = new Intent(this, ReaderStatusActivity.class);
+//        intent.putExtra(ReaderStatusActivity.EXTRAS_DEVICE_NAME, device.getName());
+//        intent.putExtra(ReaderStatusActivity.EXTRAS_DEVICE_ADDRESS,
+//                device.getAddress());
+//        startActivity(intent);
     }
 
     private synchronized void scanTheDevice(final boolean enable) {

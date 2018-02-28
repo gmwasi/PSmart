@@ -13,27 +13,40 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            app:title="@string/title_devices"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="BLUETOOTH" />
 
     </android.support.design.widget.AppBarLayout>
 
     <TextView
-        android:id="@+id/device_name"
+        android:id="@+id/tv_paired_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="24sp" />
+        android:background="#eeeeee"
+        android:visibility="gone"
+        android:padding="10dp"
+        android:text="@string/paired_devices" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_paired_devices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
 
     <TextView
-        android:id="@+id/device_address"
+        android:id="@+id/tv_new_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp" />
+        android:background="#eeeeee"
+        android:padding="10dp"
+        android:text="@string/new_devices" />
 
-    <ListView
-        android:id="@android:id/list"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_scanned_devices"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
+
 </LinearLayout>

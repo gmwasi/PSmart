@@ -28,7 +28,8 @@
                 android:priority="1">
                 <category android:name="android.intent.category.DEFAULT" />
 
-                <action android:name="org.kenyahmis.psmart.WRITE_DATA" />
+                <action android:name="org.kenyahmis.psmart.ACTION_READ_DATA" />
+                <action android:name="org.kenyahmis.psmart.ACTION_WRITE_DATA"/>
 
                 <data android:mimeType="text/plain" />
             </intent-filter>

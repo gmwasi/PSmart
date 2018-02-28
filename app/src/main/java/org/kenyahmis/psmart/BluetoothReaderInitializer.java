@@ -137,7 +137,7 @@ public class BluetoothReaderInitializer {
         final IntentFilter intentFilter = new IntentFilter();
 
         intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        context.registerReceiver(mBroadcastReceiver, intentFilter);
+//        context.registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
     public String initialize(){

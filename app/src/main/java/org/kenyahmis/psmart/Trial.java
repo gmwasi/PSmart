@@ -1,7 +1,5 @@
 package org.kenyahmis.psmart;
 
-import java.util.Set;
-
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,12 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -28,21 +20,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.acs.bluetooth.Acr1255uj1Reader;
-import com.acs.bluetooth.Acr3901us1Reader;
-import com.acs.bluetooth.BluetoothReader;
-import com.acs.bluetooth.BluetoothReaderManager;
-
-import org.kenyahmis.psmartlibrary.Models.Response;
-import org.kenyahmis.psmartlibrary.PSmartCard;
-
-import static org.kenyahmis.psmart.ReaderSettingsActivity.TAG;
+import java.util.Set;
 
 /**
- * Activity for scanning and displaying available Bluetooth LE devices.
+ * Created by ekirapa on 2/27/18.
  */
-public class DeviceScanActivity extends AppCompatActivity {
 
+public class Trial extends AppCompatActivity {
     private RecyclerView recyclerView, recycler_paired;
 
     private BluetoothAdapter mBTAdapter;
@@ -57,7 +41,7 @@ public class DeviceScanActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_scan);
-        setResult(RESULT_CANCELED);
+
         recyclerView = findViewById(R.id.recycler_scanned_devices);
         recycler_paired = findViewById(R.id.recycler_paired_devices);
 
@@ -67,16 +51,6 @@ public class DeviceScanActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         adapter = new DeviceAdapter(getBaseContext());
         recyclerView.setAdapter(adapter);
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getBaseContext(), new RecyclerItemClickListener.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                BluetoothDevice device = adapter.getDevice(position);
-                Intent intent = new Intent();
-                intent.putExtra("device",device);
-                setResult(RESULT_OK,intent);
-                finish();
-            }
-        }));
         mBTAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Ask for location permission if not already allowed
@@ -104,16 +78,6 @@ public class DeviceScanActivity extends AppCompatActivity {
         recycler_paired.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         paired_adapter = new DeviceAdapter(getBaseContext());
         recycler_paired.setAdapter(paired_adapter);
-        recycler_paired.addOnItemTouchListener(new RecyclerItemClickListener(getBaseContext(), new RecyclerItemClickListener.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                BluetoothDevice device = paired_adapter.getDevice(position);
-                Intent intent = new Intent();
-                intent.putExtra("device",device);
-                setResult(RESULT_OK,intent);
-                finish();
-            }
-        }));
     }
 
     private void bluetoothOn() {
@@ -146,13 +110,6 @@ public class DeviceScanActivity extends AppCompatActivity {
                 finish();
             }
         }
-    }
-
-    @Override
-    public void finish() {
-        if (blReceiver !=null)
-            unregisterReceiver(blReceiver);
-        super.finish();
     }
 
     private void listPairedDevices() {
@@ -201,4 +158,3 @@ public class DeviceScanActivity extends AppCompatActivity {
         }
     };
 }
-

@@ -13,8 +13,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Intent intent = new Intent(getBaseContext(),CardReaderActivity.class);
-        intent.putExtra("ACTION", "WRITE");
-        intent.putExtra("WRITE_DATA", "SHM_DATA_HERE");
+        //intent.putExtra("ACTION", "WRITE");
+        intent.setAction("org.kenyahmis.psmart.ACTION_READ_DATA");
+        //intent.putExtra("WRITE_DATA", "SHM_DATA_HERE");
         intent.putExtra(AppConstants.EXTRA_AUTH_TOKEN,"123");
         startActivity(intent);
     }

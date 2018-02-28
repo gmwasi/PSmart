@@ -25,5 +25,7 @@
     <!--card reader buttons-->
     <string name="read_Card">Read Card</string>
     <string name="write_Card">Write Card</string>
+    <string name="paired_devices">Paired Devices</string>
+    <string name="new_devices">New Devices</string>
 
 </resources>

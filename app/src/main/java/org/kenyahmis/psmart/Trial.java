@@ -1,7 +1,5 @@
 package org.kenyahmis.psmart;
 
-import java.util.Set;
-
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -22,11 +20,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/**
- * Activity for scanning and displaying available Bluetooth LE devices.
- */
-public class DeviceScanActivity extends AppCompatActivity {
+import java.util.Set;
 
+/**
+ * Created by ekirapa on 2/27/18.
+ */
+
+public class Trial extends AppCompatActivity {
     private RecyclerView recyclerView, recycler_paired;
 
     private BluetoothAdapter mBTAdapter;
@@ -158,4 +158,3 @@ public class DeviceScanActivity extends AppCompatActivity {
         }
     };
 }
-

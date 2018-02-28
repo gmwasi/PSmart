@@ -2,6 +2,7 @@ package org.kenyahmis.psmart;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceHold
     public void onBindViewHolder(DeviceHolder holder, int position) {
         holder.device_address.setText(bluetoothDevices.get(position).getAddress());
         holder.device_name.setText((bluetoothDevices.get(position).getName() != null) ? bluetoothDevices.get(position).getName() : context.getString(R.string.unknown_device));
+        holder.device_name.setTextColor((bluetoothDevices.get(position).getType() == BluetoothDevice.DEVICE_TYPE_LE) ? ContextCompat.getColor(context, R.color.green) : ContextCompat.getColor(context, R.color.black));
     }
 
     @Override

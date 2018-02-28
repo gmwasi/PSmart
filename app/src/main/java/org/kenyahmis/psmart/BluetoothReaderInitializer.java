@@ -4,7 +4,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -29,23 +32,126 @@ public class BluetoothReaderInitializer {
     private String bluetoothAddress;
     private Context context;
     boolean connected = false;
+    private boolean readerReady = false;
+
+
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            BluetoothAdapter bluetoothAdapter = null;
+            BluetoothManager bluetoothManager = null;
+            final String action = intent.getAction();
+
+            if (!(bluetoothReader instanceof Acr3901us1Reader)) {
+                /* Only ACR3901U-S1 require bonding. */
+                return;
+            }
+
+            if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                Log.i(TAG, "ACTION_BOND_STATE_CHANGED");
+
+                /* Get bond (pairing) state */
+                if (bluetoothReaderManager == null) {
+                    Log.w(TAG, "Unable to initialize BluetoothReaderManager.");
+                    return;
+                }
+
+                bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+                if (bluetoothManager == null) {
+                    Log.w(TAG, "Unable to initialize BluetoothManager.");
+                    return;
+                }
+
+                bluetoothAdapter = bluetoothManager.getAdapter();
+                if (bluetoothAdapter == null) {
+                    Log.w(TAG, "Unable to initialize BluetoothAdapter.");
+                    return;
+                }
+
+                final BluetoothDevice device = bluetoothAdapter
+                        .getRemoteDevice(bluetoothAddress);
+
+                if (device == null) {
+                    return;
+                }
+
+                final int bondState = device.getBondState();
+
+                // TODO: remove log message
+//                Log.i(TAG, "BroadcastReceiver - getBondState. state = "
+//                        + getBondingStatusString(bondState));
+
+                /* Enable notification */
+                if (bondState == BluetoothDevice.BOND_BONDED) {
+                    if (bluetoothReader != null) {
+                        bluetoothReader.enableNotification(true);
+                    }
+                }
+
+                /* Progress Dialog */
+
+                /*
+                 * Update bond status and show in the connection status field.
+                 */
+            }
+        }
+
+    };
 
     public BluetoothReaderInitializer(Context context, String bluetoothDeviceAddress){
         bluetoothAddress = bluetoothDeviceAddress;
         this.context = context;
-        initialize();
+        bluetoothReaderGattCallback = new BluetoothReaderGattCallback();
+        bluetoothReaderGattCallback.setOnConnectionStateChangeListener(new BluetoothReaderGattCallback.OnConnectionStateChangeListener() {
+            @Override
+            public void onConnectionStateChange(BluetoothGatt bluetoothGatt, int i, int i1) {
+                if (bluetoothReaderManager != null) {
+                    boolean val = bluetoothReaderManager.detectReader(
+                            bluetoothGatt, bluetoothReaderGattCallback);
+                    boolean s = val;
+                }
+            }
+        });
+
+        // BluetoothReaderManager
+        bluetoothReaderManager = new BluetoothReaderManager();
+        bluetoothReaderManager.setOnReaderDetectionListener(new BluetoothReaderManager.OnReaderDetectionListener() {
+            @Override
+            public void onReaderDetection(BluetoothReader reader) {
+                if (reader instanceof Acr3901us1Reader) {
+                            /* The connected reader is ACR3901U-S1 reader. */
+                    Log.v(TAG, "On Acr3901us1Reader Detected.");
+                } else if (reader instanceof Acr1255uj1Reader) {
+                            /* The connected reader is ACR1255U-J1 reader. */
+                    Log.v(TAG, "On Acr1255uj1Reader Detected.");
+                }
+
+                bluetoothReader = reader;
+                activateReader(reader);
+            }
+        });
+
+        connectReader();
+
+        final IntentFilter intentFilter = new IntentFilter();
+
+        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        context.registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
     public String initialize(){
-
-
         try {
 
             bluetoothReaderGattCallback = new BluetoothReaderGattCallback();
             bluetoothReaderGattCallback.setOnConnectionStateChangeListener(new BluetoothReaderGattCallback.OnConnectionStateChangeListener() {
                 @Override
                 public void onConnectionStateChange(BluetoothGatt bluetoothGatt, int i, int i1) {
-
+                    if (bluetoothReaderManager != null) {
+                        boolean val = bluetoothReaderManager.detectReader(
+                                bluetoothGatt, bluetoothReaderGattCallback);
+                        boolean s = val;
+                    }
                 }
             });
 
@@ -64,11 +170,17 @@ public class BluetoothReaderInitializer {
 
                     bluetoothReader = reader;
                     activateReader(reader);
-                    connected = connectReader();
+                    readerReady = true;
                 }
             });
 
-            return "sucess";
+            connectReader();
+
+            final IntentFilter intentFilter = new IntentFilter();
+
+            intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+            context.registerReceiver(mBroadcastReceiver, intentFilter);
+            return "success";
         }
 
         catch (Exception ex){
@@ -78,7 +190,17 @@ public class BluetoothReaderInitializer {
 
     }
 
-    public BluetoothReader getReader(){
+    public BluetoothReader getReader() throws InterruptedException{
+
+        int maxcount = 10;
+        for(int i = 0; i<maxcount; i++){
+            if(!readerReady){
+                Thread.sleep(1000);
+            }
+            else {
+                break;
+            }
+        }
         return bluetoothReader;
     }
 

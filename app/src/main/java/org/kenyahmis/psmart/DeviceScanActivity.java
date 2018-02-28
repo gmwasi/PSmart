@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,10 +24,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.acs.bluetooth.Acr1255uj1Reader;
+import com.acs.bluetooth.Acr3901us1Reader;
 import com.acs.bluetooth.BluetoothReader;
+import com.acs.bluetooth.BluetoothReaderManager;
 
 import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.PSmartCard;
+
+import static org.kenyahmis.psmart.ReaderSettingsActivity.TAG;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -163,9 +169,25 @@ public class DeviceScanActivity extends ListActivity {
         BluetoothReaderInitializer initializer = new BluetoothReaderInitializer(this, device.getAddress());
         Toast.makeText(this, "initialized initializer", Toast.LENGTH_SHORT).show();
 
-        String msg = initializer.initialize();
+        BluetoothReader reader = null;
+        //Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        try {
+            reader = initializer.getReader();
+            if(reader == null){
+                // display error
+            }
+        }
 
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        catch(Exception ex){
+
+        }
+
+        PSmartCard pSmartCard = new PSmartCard(reader);
+        Response response = pSmartCard.Read();
+
+        Toast.makeText(this, response.getMessage(), Toast.LENGTH_SHORT).show();
+
+
 //        BluetoothReader reader = initializer.getReader();
 //        PSmartCard pSmartCard = new PSmartCard(reader);
 //        Response response = pSmartCard.Read();

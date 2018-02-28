@@ -11,6 +11,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,6 +27,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.acs.bluetooth.Acr1255uj1Reader;
+import com.acs.bluetooth.Acr3901us1Reader;
+import com.acs.bluetooth.BluetoothReader;
+import com.acs.bluetooth.BluetoothReaderManager;
+
+import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.PSmartCard;
+
+import static org.kenyahmis.psmart.ReaderSettingsActivity.TAG;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -130,6 +146,13 @@ public class DeviceScanActivity extends AppCompatActivity {
                 finish();
             }
         }
+    }
+
+    @Override
+    public void finish() {
+        if (blReceiver !=null)
+            unregisterReceiver(blReceiver);
+        super.finish();
     }
 
     private void listPairedDevices() {

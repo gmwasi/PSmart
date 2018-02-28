@@ -1,6 +1,7 @@
 package org.kenyahmis.psmart;
 
 import android.Manifest;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -10,13 +11,21 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.acs.bluetooth.BluetoothReader;
+
+import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.PSmartCard;
 
 import java.util.ArrayList;
 
 public class CardReaderActivity extends AppCompatActivity {
     ArrayList<String> errors = new ArrayList<>();
+    private BluetoothDevice bluetoothDevice;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +82,14 @@ private void getPermisions(){
         if(requestCode ==80){
             if(resultCode ==RESULT_OK){
                 readJob();
+                bluetoothDevice = data.getParcelableExtra("device");
+                if(getIntent().getAction().equals("org.kenyahmis.psmart.ACTION_READ_DATA")){
+                    read();
+                }else{
+                    String message = getIntent().getExtras().getString("shr_message", null);
+                    if(message!=null)
+                        write("");
+                }
             }else{
                 Intent intent = new Intent();
                 errors.add("Could not Connect to card");
@@ -84,18 +101,65 @@ private void getPermisions(){
 
     private void readJob()  {
         if(true){
-            Intent intent = new Intent();
-            intent.putExtra(AppConstants.EXTRA_MESSAGE,SHR);
-            setResult(RESULT_OK, intent);
+
 
         }else{
-            Intent intent = new Intent();
-            errors.add("Could not write");
-            intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
-            setResult(RESULT_CANCELED, intent);
+
         }
         finish();
     }
+
+    private BluetoothReader connect(){
+
+        if(bluetoothDevice == null){return null;}
+        BluetoothReaderInitializer initializer = new BluetoothReaderInitializer(this, bluetoothDevice.getAddress());
+        BluetoothReader reader = null;
+        try {
+            reader = initializer.getReader();
+            if(reader == null){
+                // display error
+            }
+        }
+
+        catch(Exception ex){
+
+        }
+
+        return reader;
+    }
+
+    private Response read(){
+        Toast.makeText(this, "Reading", Toast.LENGTH_SHORT).show();
+        BluetoothReader bluetoothReader = connect();
+        if(bluetoothReader != null){
+
+            PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
+            Response response = pSmartCard.Read();
+            Log.d("Response" , response.getMessage());
+
+            Intent intent = new Intent();
+            intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
+            setResult(RESULT_OK, intent);
+            return response;
+        }
+        Intent intent = new Intent();
+        errors.add("Could not write");
+        intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+        setResult(RESULT_CANCELED, intent);
+        return null;
+    }
+
+    private Response write(String shrmessage){
+        BluetoothReader bluetoothReader = connect();
+        if(bluetoothReader != null){
+            PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
+            Response response = pSmartCard.Write(shrmessage);
+            return response;
+        }
+        return null;
+    }
+
+
 private String SHR  = "{\n" +
             "  \"PATIENT_IDENTIFICATION\": {\n" +
             "    \"EXTERNAL_PATIENT_ID\": {\n" +

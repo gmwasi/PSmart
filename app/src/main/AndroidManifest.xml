@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".Trial">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,6 +29,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <action android:name="org.kenyahmis.psmart.ACTION_READ_DATA" />
+                <action android:name="org.kenyahmis.psmart.ACTION_WRITE_DATA"/>
 
                 <data android:mimeType="text/plain" />
             </intent-filter>
@@ -36,7 +37,6 @@
         <activity android:name=".DeviceScanActivity" android:theme="@style/AppTheme"/>
         <activity android:name=".ReaderSettingsActivity" android:theme="@style/AppTheme"/>
         <activity android:name=".ReaderStatusActivity" android:theme="@style/AppTheme"/>
-        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>

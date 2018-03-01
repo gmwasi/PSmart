@@ -23,6 +23,8 @@ import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.PSmartCard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CardReaderActivity extends AppCompatActivity {
     ArrayList<String> errors = new ArrayList<>();
@@ -83,15 +85,18 @@ public class CardReaderActivity extends AppCompatActivity {
         if(requestCode ==80){
             if(resultCode ==RESULT_OK){
                 progressDialog.setCancelable(false);
-                progressDialog.setTitle("Reading Data");
-                progressDialog.show();
+
                 bluetoothDevice = data.getParcelableExtra("device");
                 if(getIntent().getAction().equals("org.kenyahmis.psmart.ACTION_READ_DATA")){
+                    progressDialog.setTitle("Reading Data");
+                    progressDialog.show();
                     new ReadTask().execute();
                 }else{
+                    progressDialog.setTitle("Writing Data");
+                    progressDialog.show();
                     String message = getIntent().getExtras().getString("shr_message", null);
                     if(message!=null)
-                        write("");
+                        new WriteTask().execute(message);
                 }
             }else{
                 Intent intent = new Intent();
@@ -122,6 +127,7 @@ public class CardReaderActivity extends AppCompatActivity {
                 errors.add("Could not read");
                 intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
                 setResult(RESULT_CANCELED, intent);
+                finish();
             }
         }
 
@@ -131,14 +137,29 @@ public class CardReaderActivity extends AppCompatActivity {
         }
     }
 
-    private void readJob()  {
-        if(true){
-
-
-        }else{
-
+    class WriteTask extends AsyncTask<String,Void,Response>{
+        @Override
+        protected void onPostExecute(Response response) {
+            super.onPostExecute(response);
+            hideDialog();
+            if(response!=null){
+                Intent intent = new Intent();
+                intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
+                setResult(RESULT_OK, intent);
+                finish();
+            }else{
+                Intent intent = new Intent();
+                errors.add("Could not write to card");
+                intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+                setResult(RESULT_CANCELED, intent);
+                finish();
+            }
         }
-        finish();
+
+        @Override
+        protected Response doInBackground(String... strings) {
+            return write(strings[0]);
+        }
     }
 
     private BluetoothReader connect(){
@@ -185,6 +206,13 @@ public class CardReaderActivity extends AppCompatActivity {
         return null;
     }
 
+    private void errorMessage(String ... messages){
+        Intent intent = new Intent();
+        errors.addAll(Arrays.asList(messages));
+        intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+        setResult(RESULT_CANCELED, intent);
+        finish();
+    }
 
 private String SHR  = "{\n" +
             "  \"PATIENT_IDENTIFICATION\": {\n" +

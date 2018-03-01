@@ -182,15 +182,19 @@ public class CardReaderActivity extends AppCompatActivity {
     }
 
     private Response read(){
-        //Toast.makeText(this, "Reading", Toast.LENGTH_SHORT).show();
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
 
             PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
-            Response response = pSmartCard.Read();
-            Log.d("Response" , response.getMessage());
+            try {
+                Response response = pSmartCard.Read();
+                Log.d("Response" , response.getMessage());
+                return response;
+            }catch (Exception e){
+                e.printStackTrace();
+                return null;
+            }
 
-            return response;
         }
 
         return null;
@@ -199,9 +203,13 @@ public class CardReaderActivity extends AppCompatActivity {
     private Response write(String shrmessage){
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
-            PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
-            Response response = pSmartCard.Write(shrmessage);
-            return response;
+            try {
+                PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
+                return pSmartCard.Write(shrmessage);
+            }catch (Exception e){
+                return  null;
+            }
+
         }
         return null;
     }

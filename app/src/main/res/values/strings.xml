@@ -2,7 +2,7 @@
     <string name="app_name">psmart</string>
     <string name="title_activity_card_reader">CardReaderActivity</string>
     <string name="error_auth_failed">Authentication Failed.</string>
-
+    <string name="main_Message">Welcome to PSmart!\n Access is limited to verified HTS applications.</string>
     <!--  Bluetooth strings   -->
     <string name="ble_not_supported">BLE is not supported.</string>
     <string name="title_devices">BLE Device Scan</string>

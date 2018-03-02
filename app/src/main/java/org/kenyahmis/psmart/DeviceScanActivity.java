@@ -25,6 +25,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +50,7 @@ public class DeviceScanActivity extends AppCompatActivity {
     private Set<BluetoothDevice> mPairedDevices;
     private DeviceAdapter adapter, paired_adapter;
     private TextView paired, scanned;
+    private LinearLayout linearLayout;
 
     private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
 
@@ -60,6 +62,7 @@ public class DeviceScanActivity extends AppCompatActivity {
         setResult(RESULT_CANCELED);
         recyclerView = findViewById(R.id.recycler_scanned_devices);
         recycler_paired = findViewById(R.id.recycler_paired_devices);
+        linearLayout = findViewById(R.id.linear);
 
         paired = findViewById(R.id.tv_paired_devices);
         scanned = findViewById(R.id.tv_new_devices);
@@ -98,7 +101,6 @@ public class DeviceScanActivity extends AppCompatActivity {
     }
 
     private void setupPaired() {
-        paired.setVisibility(View.VISIBLE);
         recycler_paired = findViewById(R.id.recycler_paired_devices);
 
         recycler_paired.setLayoutManager(new LinearLayoutManager(getBaseContext()));
@@ -161,8 +163,14 @@ public class DeviceScanActivity extends AppCompatActivity {
         if (mBTAdapter.isEnabled()) {
             // put it's one to the adapter
             for (BluetoothDevice device : mPairedDevices) {
-                paired_adapter.addDevice(device);
-                Log.d("Paired", device.getName());
+                if(device.getType()==BluetoothDevice.DEVICE_TYPE_LE) {
+                    paired.setVisibility(View.VISIBLE);
+                    if(linearLayout.getVisibility() == View.VISIBLE)
+                        linearLayout.setVisibility(View.GONE);
+                    paired_adapter.addDevice(device);
+                    Log.d("Paired", device.getName());
+                }
+
             }
 
             Toast.makeText(getApplicationContext(), "Show Paired Devices", Toast.LENGTH_SHORT).show();
@@ -188,6 +196,12 @@ public class DeviceScanActivity extends AppCompatActivity {
         }
     }
 
+    private void showScanned(){
+        if(scanned.getVisibility()==View.GONE)
+            scanned.setVisibility(View.VISIBLE);
+        if(recyclerView.getVisibility() == View.GONE)
+            recyclerView.setVisibility(View.VISIBLE);
+    }
     final BroadcastReceiver blReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -195,8 +209,12 @@ public class DeviceScanActivity extends AppCompatActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // add the name to the list
-                adapter.addDevice(device);
-                Log.d("Discovered", device.getName() + " MAC " + device.getAddress());
+                if(device.getType()==BluetoothDevice.DEVICE_TYPE_LE) {
+                    showScanned();
+                    if(linearLayout.getVisibility() == View.VISIBLE)
+                        linearLayout.setVisibility(View.GONE);
+                    adapter.addDevice(device);
+                }
             }
         }
     };

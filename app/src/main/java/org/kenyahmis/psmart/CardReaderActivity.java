@@ -19,8 +19,8 @@ import android.widget.Toast;
 
 import com.acs.bluetooth.BluetoothReader;
 
-import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.PSmartCard;
+import org.kenyahmis.psmartlibrary.Models.Response;
 
 import java.util.ArrayList;
 import java.util.Arrays;

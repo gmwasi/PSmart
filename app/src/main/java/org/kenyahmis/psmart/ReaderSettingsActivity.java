@@ -217,7 +217,7 @@ public class ReaderSettingsActivity extends AppCompatActivity implements
         mTxtManufacturerName.setText(R.string.noData);
     }
 
-    private void findUiViews() {
+    /*private void findUiViews() {
         mAuthentication = (Button) findViewById(R.id.button_Authenticate);
 
         mPowerOn = (Button) findViewById(R.id.button_PowerOn);
@@ -244,7 +244,7 @@ public class ReaderSettingsActivity extends AppCompatActivity implements
         mTxtFirmwareRev = (TextView) findViewById(R.id.textView_FirmwareRevision);
         mTxtHardwareRev = (TextView) findViewById(R.id.textView_HardwareRevision);
         mTxtManufacturerName = (TextView) findViewById(R.id.textView_Manufacturer);
-    }
+    }*/
 
     /*
      * Update listener
@@ -682,7 +682,7 @@ public class ReaderSettingsActivity extends AppCompatActivity implements
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         /* Update UI. */
-        findUiViews();
+        //findUiViews();
         updateUi(null);
 
         /* Set the onClick() event handlers. */
@@ -862,8 +862,7 @@ public class ReaderSettingsActivity extends AppCompatActivity implements
             menu.findItem(R.id.menu_connect).setVisible(false);
             menu.findItem(R.id.menu_connecting).setVisible(true);
             menu.findItem(R.id.menu_disconnect).setVisible(false);
-            menu.findItem(R.id.menu_refresh).setActionView(
-                    R.layout.actionbar_indeterminate_progress);
+           // menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
         } else {
             menu.findItem(R.id.menu_connect).setVisible(true);
             menu.findItem(R.id.menu_connecting).setVisible(false);

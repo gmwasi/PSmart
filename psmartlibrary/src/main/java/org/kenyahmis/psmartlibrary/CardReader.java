@@ -15,8 +15,6 @@ interface CardReader {
     //     Data read from the card as byte array
     AcosCardResponse ReadCard();
 
-    String readUserFile(UserFile userFile);
-
     String writeUserFile(String data, UserFile userFile);
 
     void clean();

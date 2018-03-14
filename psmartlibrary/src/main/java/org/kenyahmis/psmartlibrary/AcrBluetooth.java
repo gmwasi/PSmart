@@ -14,8 +14,11 @@ import org.kenyahmis.psmartlibrary.Models.ApduCommand;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
 import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.Models.SHR.CardDetail;
+import org.kenyahmis.psmartlibrary.Models.SHR.ExternalPatientId;
 import org.kenyahmis.psmartlibrary.Models.SHR.HIVTest;
 import org.kenyahmis.psmartlibrary.Models.SHR.Immunization;
+import org.kenyahmis.psmartlibrary.Models.SHR.PatientAddress;
+import org.kenyahmis.psmartlibrary.Models.SHR.PatientIdentification;
 import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
@@ -78,6 +81,8 @@ class AcrBluetooth implements CardReader {
     }
 
     AcrBluetooth(BluetoothReader reader){
+        deserializer = new Deserializer();
+        serializer = new Serializer();
         if(reader != null) bluetoothReader = reader;
         else throw new NullPointerException();
 
@@ -122,7 +127,13 @@ class AcrBluetooth implements CardReader {
                 hivTests.add(hivTest);
             }
 
+            ExternalPatientId externalPatientId = deserializer.deserialize(ExternalPatientId.class, identifiersExternal);
+            PatientAddress patientAddress = deserializer.deserialize(PatientAddress.class, identifiersAddress);
 
+            PatientIdentification patientIdentification = new PatientIdentification();
+            patientIdentification.setExternalpatientid(externalPatientId);
+            patientIdentification.setPatientaddress(patientAddress);
+            shrMessage.setPatientIdentification(patientIdentification);
             shrMessage.setCardDetail(cardDetail);
             shrMessage.setImmunizations(immunizations);
             shrMessage.setHivTests(hivTests);

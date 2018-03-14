@@ -11,9 +11,16 @@ import org.kenyahmis.psmartlibrary.AcosCard.SecurityOptionRegister;
 import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.AcosCommand;
 import org.kenyahmis.psmartlibrary.Models.ApduCommand;
+import org.kenyahmis.psmartlibrary.Models.ReadResponse;
+import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.Models.SHR.CardDetail;
+import org.kenyahmis.psmartlibrary.Models.SHR.HIVTest;
+import org.kenyahmis.psmartlibrary.Models.SHR.Immunization;
+import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by GMwasi on 2/10/2018.
@@ -31,6 +38,8 @@ class AcrBluetooth implements CardReader {
 
     private String TAG = "BluetoothReader";
     private BluetoothReader bluetoothReader;
+    private Serializer serializer;
+    private Deserializer deserializer;
 
     public enum CODE_TYPE
     {
@@ -76,40 +85,47 @@ class AcrBluetooth implements CardReader {
     }
 
     @Override
-    public AcosCardResponse ReadCard() {
+    public Response ReadCard() {
+        SHRMessage shrMessage = new SHRMessage();
+        List<String> errors = null;
+        try {
+            authenticate();
+            bluetoothReader.powerOnCard();
+            if(!checkIfAuthenticated()){
 
-        authenticate();
-        bluetoothReader.powerOnCard();
-        if(!checkIfAuthenticated()){
-
-        }
-        selectFile();
-        //readRecord();
-
-        int max = 5;
-        int counter = 0;
-        while(!apduAvailable) {
-            try{
-                Thread.sleep(1000);
-                counter+=1;
-                if(counter == max) break;
-
-            } catch (InterruptedException ex){}
-        }
-
-        if(!apduAvailable)
-        {
-            return new AcosCardResponse(null, null, new ArrayList<String>(){{add("Response not available");}});
-        }
-
-        else
-        {
-            if(successfulResponse){
-                return new AcosCardResponse(byteResponse, responseInHexString, null);
             }
-            return new AcosCardResponse(null, null, new ArrayList<String>(){{add(responseInHexString);}});
-        }
 
+            // call user file setting file to read
+
+            // read immunization
+            String cardDetailsString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
+            String immunizationString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+            String hivTestString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+            //String identifiers = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
+
+            CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetailsString);
+            Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationString);
+            List<Immunization> immunizations = new ArrayList<>();
+            for (Immunization immunization: immunizationArray ) {
+                immunizations.add(immunization);
+            }
+
+            HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTestString);
+            List<HIVTest> hivTests = new ArrayList<>();
+            for (HIVTest hivTest : hivTestsArray ) {
+                hivTests.add(hivTest);
+            }
+
+
+            shrMessage.setCardDetail(cardDetail);
+            shrMessage.setImmunizations(immunizations);
+            shrMessage.setHivTests(hivTests);
+        } catch (Exception e) {
+            e.printStackTrace();
+            errors.add(e.getMessage());
+        }
+        String shrString = serializer.serialize(shrMessage);
+        return new ReadResponse(shrString, errors);
     }
 
     private String readUserFile(UserFile userFile) {

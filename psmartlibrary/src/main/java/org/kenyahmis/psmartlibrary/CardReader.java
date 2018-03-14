@@ -3,6 +3,7 @@ package org.kenyahmis.psmartlibrary;
 
 import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.HexString;
+import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
 /**
@@ -13,7 +14,7 @@ interface CardReader {
 
     // Returns:
     //     Data read from the card as byte array
-    AcosCardResponse ReadCard();
+    Response ReadCard();
 
     String writeUserFile(String data, UserFile userFile);
 

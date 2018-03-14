@@ -3,6 +3,8 @@ package org.kenyahmis.psmartlibrary;
 import android.util.Log;
 
 import com.acs.bluetooth.BluetoothReader;
+
+import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.Addendum.Addendum;
 import org.kenyahmis.psmartlibrary.Models.Addendum.Identifier;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
@@ -41,34 +43,10 @@ public class PSmartCard implements Card {
     }
 
     @Override
-    public Response Read() {
-        if (reader != null) {
+    public ReadResponse Read() {
 
-            // read immunization
-            String cardDetailsString = reader.readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
-            String immunizationString = reader.readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
-            String hivTestString = reader.readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
-            //String identifiers = reader.readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
-
-            CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetailsString);
-            Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationString);
-            List<Immunization> immunizations = new ArrayList<>();
-            for (Immunization immunization: immunizationArray ) {
-                immunizations.add(immunization);
-            }
-
-            HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTestString);
-            List<HIVTest> hivTests = new ArrayList<>();
-            for (HIVTest hivTest : hivTestsArray ) {
-                hivTests.add(hivTest);
-            }
-
-            SHRMessage shrMessage = new SHRMessage();
-            shrMessage.setCardDetail(cardDetail);
-            shrMessage.setImmunizations(immunizations);
-            shrMessage.setHivTests(hivTests);
-
-            return new ReadResponse(serializer.serialize(shrMessage), null);
+            ReadResponse response = (ReadResponse) reader.ReadCard();
+            return response;
 
 ////            String cardData = reader.ReadCard().hexString;
 ////            String encryptedData = Utils.hexToString(cardData);
@@ -233,9 +211,7 @@ public class PSmartCard implements Card {
 //            //todo: replace mock message response with th read message
 //            Response response = new ReadResponse(decryptedMessage, null);
 //            return response;
-        }
-        return null;
-    }
+       }
 
 
     @Override

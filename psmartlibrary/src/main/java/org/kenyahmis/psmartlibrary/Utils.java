@@ -416,4 +416,20 @@ public class Utils {
         return toHexString(text.getBytes());
     }
 
+    public static String byteArrayToString (byte[] data, int length)
+    {
+        String str = "";
+        int indx = 0;
+
+        while((data[indx] & 0xFF) != 0x00)
+        {
+            str  += (char)(data[indx] & 0xFF);
+            indx++;
+            if (indx == length)
+                break;
+        }
+
+        return str;
+    }
+
 }

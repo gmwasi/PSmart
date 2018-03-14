@@ -1,9 +1,5 @@
 package org.kenyahmis.psmartlibrary.Models;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Created by Muhoro on 3/13/2018.
  */
@@ -17,7 +13,7 @@ public class ApduCommand {
     public byte P3;
 
     public byte[] data;
-    private byte[] Sw;
+    private byte[] ResponseApdu;
 
     public void setCommand(byte Cla, byte Ins, byte P1, byte P2, byte P3){
         this.Cla = Cla;
@@ -44,6 +40,6 @@ public class ApduCommand {
         return bytes;
     }
 
-    public byte[] getSw() {return this.Sw;}
-    public void setSw(byte[] sw) {this.Sw = sw;}
+    public byte[] getResponseApdu() {return this.ResponseApdu;}
+    public void setResponseApdu(byte[] responseApdu) {this.ResponseApdu = responseApdu;}
 }

@@ -11,9 +11,16 @@ import org.kenyahmis.psmartlibrary.AcosCard.SecurityOptionRegister;
 import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.AcosCommand;
 import org.kenyahmis.psmartlibrary.Models.ApduCommand;
+import org.kenyahmis.psmartlibrary.Models.ReadResponse;
+import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.Models.SHR.CardDetail;
+import org.kenyahmis.psmartlibrary.Models.SHR.HIVTest;
+import org.kenyahmis.psmartlibrary.Models.SHR.Immunization;
+import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by GMwasi on 2/10/2018.
@@ -31,6 +38,8 @@ class AcrBluetooth implements CardReader {
 
     private String TAG = "BluetoothReader";
     private BluetoothReader bluetoothReader;
+    private Serializer serializer;
+    private Deserializer deserializer;
 
     public enum CODE_TYPE
     {
@@ -76,45 +85,75 @@ class AcrBluetooth implements CardReader {
     }
 
     @Override
-    public AcosCardResponse ReadCard() {
+    public Response ReadCard() {
+        SHRMessage shrMessage = new SHRMessage();
+        List<String> errors = null;
+        try {
+            authenticate();
+            bluetoothReader.powerOnCard();
+            if(!checkIfAuthenticated()){
 
-        authenticate();
-        bluetoothReader.powerOnCard();
-        if(!checkIfAuthenticated()){
-
-        }
-        selectFile();
-        //readRecord();
-
-        int max = 5;
-        int counter = 0;
-        while(!apduAvailable) {
-            try{
-                Thread.sleep(1000);
-                counter+=1;
-                if(counter == max) break;
-
-            } catch (InterruptedException ex){}
-        }
-
-        if(!apduAvailable)
-        {
-            return new AcosCardResponse(null, null, new ArrayList<String>(){{add("Response not available");}});
-        }
-
-        else
-        {
-            if(successfulResponse){
-                return new AcosCardResponse(byteResponse, responseInHexString, null);
             }
-            return new AcosCardResponse(null, null, new ArrayList<String>(){{add(responseInHexString);}});
-        }
 
+            // call user file setting file to read
+
+            // read immunization
+            String cardDetailsString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
+            String immunizationString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+            String hivTestString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+            //String identifiers = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
+
+            CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetailsString);
+            Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationString);
+            List<Immunization> immunizations = new ArrayList<>();
+            for (Immunization immunization: immunizationArray ) {
+                immunizations.add(immunization);
+            }
+
+            HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTestString);
+            List<HIVTest> hivTests = new ArrayList<>();
+            for (HIVTest hivTest : hivTestsArray ) {
+                hivTests.add(hivTest);
+            }
+
+
+            shrMessage.setCardDetail(cardDetail);
+            shrMessage.setImmunizations(immunizations);
+            shrMessage.setHivTests(hivTests);
+        } catch (Exception e) {
+            e.printStackTrace();
+            errors.add(e.getMessage());
+        }
+        String shrString = serializer.serialize(shrMessage);
+        return new ReadResponse(shrString, errors);
     }
 
-    @Override
-    public String readUserFile(UserFile userFile) {
-        return null;
+    private String readUserFile(UserFile userFile) {
+        byte[] fileId = new byte[2];
+        byte dataLen = 0x00;
+        byte[] data;
+        String readMsg = "";
+        try {
+
+            fileId = userFile.getFileDescriptor().getFileId();
+            dataLen = (byte)userFile.getFileDescriptor().getExpLength();
+
+            // Select user file
+            selectFile(fileId);
+
+            // read first record of user file selected
+            //TODO: displayOut(0, 0, "\nRead Record");
+            data = readRecord((byte)0x00, (byte)0x00, dataLen);
+            readMsg = Utils.byteArrayToString(data, data.length);
+            //SmartCardUtils.displayOut(loggerWidget, ">>Data from Smart Card: \n " + readMsg);
+
+        }
+        catch(Exception exception)
+        {
+            //SmartCardUtils.displayOut(loggerWidget, exception.getMessage().toString() + "\r\n");
+            exception.printStackTrace();
+        }
+        return readMsg;
     }
 
     @Override
@@ -446,10 +485,21 @@ class AcrBluetooth implements CardReader {
         return authenticated;
     }
 
-    private boolean readRecord(byte recordNumber, byte offset, byte lengthToRead){
-        ApduCommand apduCommand = new ApduCommand();
-        apduCommand.setCommand(AcosCommand.CLA, AcosCommand.READ_INS, recordNumber, offset, lengthToRead );
-        return bluetoothReader.transmitApdu(apduCommand.createCommand());
+    private byte[] readRecord(byte recordNumber, byte offset, byte lengthToRead) throws Exception
+    {
+        ApduCommand apdu;
+
+        apdu = new ApduCommand();
+        apdu.setCommand((byte)0x80, (byte)0xB2, recordNumber, offset, lengthToRead);
+
+        byte[] apduCommand = apdu.createCommand();
+        bluetoothReader.transmitApdu(apduCommand);
+        setApduResponse(apdu, "read");
+
+        if (apdu.getResponseApdu()[0] != (byte)0x90)
+            throw new Exception (getErrorMessage(apdu.getResponseApdu()));
+
+        return apdu.getResponseApdu();
     }
 
     private boolean writeRecord(byte recordNumber, byte offset, byte[] dataToWrite)throws Exception{
@@ -468,8 +518,8 @@ class AcrBluetooth implements CardReader {
         byte[] apduCommand = apdu.createCommand();
         boolean val = bluetoothReader.transmitApdu(apduCommand);
         setApduResponse(apdu, "write");
-        /*if (apdu.getSw()[0] != (byte)0x90 )
-            throw new Exception (getErrorMessage(apdu.getSw()));*/
+        /*if (apdu.getResponseApdu()[0] != (byte)0x90 )
+            throw new Exception (getErrorMessage(apdu.getResponseApdu()));*/
         return val;
     }
 
@@ -530,7 +580,7 @@ class AcrBluetooth implements CardReader {
         return "Unknown error.";
     }
 
-    public String getErrorMessage(byte[] statusWord)
+    private String getErrorMessage(byte[] statusWord)
     {
         if (statusWord == null )
             return "Invalid Parameters.";
@@ -597,8 +647,8 @@ class AcrBluetooth implements CardReader {
         byte[] apduCommand = apdu.createCommand();
         bluetoothReader.transmitApdu(apduCommand);
         setApduResponse(apdu, "clearCard");
-        if (apdu.getSw()[0] != (byte)0x90)
-            throw new Exception (getErrorMessage(apdu.getSw()));
+        if (apdu.getResponseApdu()[0] != (byte)0x90)
+            throw new Exception (getErrorMessage(apdu.getResponseApdu()));
     }
 
     private String submitCode(CODE_TYPE codeType, String code) throws Exception{
@@ -613,9 +663,9 @@ class AcrBluetooth implements CardReader {
         apduAvailable = false;
         bluetoothReader.transmitApdu(apduCommand);
         setApduResponse(apdu, "submitCode");
-        if (apdu.getSw()[0] == (byte)0x63)
+        if (apdu.getResponseApdu()[0] == (byte)0x63)
         {
-            int triesLeft = apdu.getSw()[1] - (byte)0xC0;
+            int triesLeft = apdu.getResponseApdu()[1] - (byte)0xC0;
 
             if (triesLeft == 0)
                 throw new Exception ("PIN/Code is locked");
@@ -624,11 +674,11 @@ class AcrBluetooth implements CardReader {
             else
                 throw new Exception ("Invalid PIN/Code, you only have " + triesLeft + " tries left");
         }
-        else if (apdu.getSw()[0] == (byte)0x69 && apdu.getSw()[1] == (byte)0x83)
+        else if (apdu.getResponseApdu()[0] == (byte)0x69 && apdu.getResponseApdu()[1] == (byte)0x83)
             throw new Exception ("PIN/Code is locked");
-        else if (apdu.getSw()[0] == (byte)0x69 && apdu.getSw()[1] == (byte)0x85)
+        else if (apdu.getResponseApdu()[0] == (byte)0x69 && apdu.getResponseApdu()[1] == (byte)0x85)
             throw new Exception ("Authentication incomplete");
-        else if (apdu.getSw()[0] == (byte)0x90)
+        else if (apdu.getResponseApdu()[0] == (byte)0x90)
             return "Valid";
         else
             return "Unknown state";
@@ -646,9 +696,9 @@ class AcrBluetooth implements CardReader {
 
         bluetoothReader.transmitApdu(apduCommand);
         setApduResponse(apdu, "submitcode");
-        if (apdu.getSw()[0] == (byte)0x63)
+        if (apdu.getResponseApdu()[0] == (byte)0x63)
         {
-            int triesLeft = apdu.getSw()[1] - (byte)0xC0;
+            int triesLeft = apdu.getResponseApdu()[1] - (byte)0xC0;
 
             if (triesLeft == 0)
                 throw new Exception ("PIN/Code is locked");
@@ -657,11 +707,11 @@ class AcrBluetooth implements CardReader {
             else
                 throw new Exception ("Invalid PIN/Code, you only have " + triesLeft + " tries left");
         }
-        else if (apdu.getSw()[0] == (byte)0x69 && apdu.getSw()[1] == (byte)0x83)
+        else if (apdu.getResponseApdu()[0] == (byte)0x69 && apdu.getResponseApdu()[1] == (byte)0x83)
             throw new Exception ("PIN/Code is locked");
-        else if (apdu.getSw()[0] == (byte)0x69 && apdu.getSw()[1] == (byte)0x85)
+        else if (apdu.getResponseApdu()[0] == (byte)0x69 && apdu.getResponseApdu()[1] == (byte)0x85)
             throw new Exception ("Authentication incomplete");
-        else if (apdu.getSw()[0] == (byte)0x90)
+        else if (apdu.getResponseApdu()[0] == (byte)0x90)
             return "Valid";
         else
             return "Unknown state";
@@ -711,7 +761,7 @@ class AcrBluetooth implements CardReader {
     }
 
 
-    public void configurePersonalizationFile(OptionRegister optionRegister,
+    private void configurePersonalizationFile(OptionRegister optionRegister,
                                              SecurityOptionRegister securityRegister, byte NumberOfFiles) throws Exception
     {
         try
@@ -746,7 +796,7 @@ class AcrBluetooth implements CardReader {
             catch (Exception ex){ex.printStackTrace();}
         }
         if(apduAvailable){
-            apduCommand.setSw(responseApdu);
+            apduCommand.setResponseApdu(responseApdu);
             Log.i(tag, "ok");
         }
 

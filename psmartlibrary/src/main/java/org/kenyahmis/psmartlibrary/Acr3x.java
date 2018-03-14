@@ -3,20 +3,16 @@ package org.kenyahmis.psmartlibrary;
 //audiojack library
 
 import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
+import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
 class Acr3x implements CardReader{
 
 
      @Override
-     public AcosCardResponse ReadCard() {
+     public Response ReadCard() {
          return null;
      }
-
-    @Override
-    public String readUserFile(UserFile userFile) {
-        return null;
-    }
 
     @Override
     public String writeUserFile(String data, UserFile userFile) {

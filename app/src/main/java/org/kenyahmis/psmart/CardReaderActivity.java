@@ -94,7 +94,7 @@ public class CardReaderActivity extends AppCompatActivity {
                 }else{
                     progressDialog.setTitle("Writing Data");
                     progressDialog.show();
-                    String message = getIntent().getExtras().getString("shr_message", null);
+                    String message = getIntent().getExtras().getString("WRITE_DATA", null);
                     if(message!=null)
                         new WriteTask().execute(message);
                 }
@@ -121,6 +121,7 @@ public class CardReaderActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
                 setResult(RESULT_OK, intent);
+                Toast.makeText(getApplicationContext(), SHR, Toast.LENGTH_SHORT).show();
                 finish();
             }else{
                 Intent intent = new Intent();

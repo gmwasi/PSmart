@@ -1,5 +1,7 @@
 package org.kenyahmis.psmartlibrary;
 
+import android.util.Log;
+
 import com.acs.bluetooth.BluetoothReader;
 import org.kenyahmis.psmartlibrary.Models.Addendum.Addendum;
 import org.kenyahmis.psmartlibrary.Models.Addendum.Identifier;
@@ -243,6 +245,11 @@ public class PSmartCard implements Card {
         String immunizationString = serializer.serialize(shrMessage.getImmunizations());
         String hivTestString = serializer.serialize(shrMessage.getHivTests());
 
+        reader.clean();
+        Log.i("WRITE", "Started writing");
+        Log.i("WRITE", "card details length" + cardDetailString.getBytes().length);
+        Log.i("WRITE", "card details length" + immunizationString.getBytes().length);
+        Log.i("WRITE", "card details length" + hivTestString.getBytes().length);
         reader.writeUserFile(cardDetailString, SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
         reader.writeUserFile(immunizationString, SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
         reader.writeUserFile(hivTestString, SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));

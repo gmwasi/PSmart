@@ -19,6 +19,8 @@ interface CardReader {
 
     String writeUserFile(String data, UserFile userFile);
 
+    void clean();
+
     // Params:
     //Data to be written on card as byte array
     // Returns:

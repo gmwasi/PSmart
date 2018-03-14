@@ -131,10 +131,10 @@ class AcrBluetooth implements CardReader {
             expLength = userFile.getFileDescriptor().getExpLength();
 
             // Select user file
-            authenticate();
-            bluetoothReader.powerOnCard();
-            formatCard();
 
+
+//            authenticate();
+//            bluetoothReader.powerOnCard();
             selectFile(fileId);
 
             tmpStr = data;
@@ -152,20 +152,7 @@ class AcrBluetooth implements CardReader {
             }
 
             writeRecord((byte)0x00, (byte)0x00, tmpArray);
-
-            // TODO wait
-            int limit = 5;
-            int counter = 0;
-            while(!apduAvailable)
-            {
-                try{
-                    if(counter == limit)
-                        break;
-                    Thread.sleep(1000);
-                    counter+=1;
-                }
-                catch (Exception ex){ex.printStackTrace();}
-            }
+            setApduResponse(new ApduCommand(), "write userfile");
 
         }
         catch(Exception exception)
@@ -302,6 +289,7 @@ class AcrBluetooth implements CardReader {
                         responseInHexString = getResponseString(apdu, errorCode);
                         responseApdu = apdu;
                         apduAvailable = true;
+                        Log.i("RESPONSE: ", "apdu - "+ responseInHexString + " error - "+errorCode);
                     }
 
                 });
@@ -434,8 +422,11 @@ class AcrBluetooth implements CardReader {
     // select file
     private boolean selectFile(){
         byte command[] = Utils.getTextinHexBytes(AcosCommand.SELECT_FILE);
-        if(command != null && command.length > 0)
-            return bluetoothReader.transmitApdu(command);
+        if(command != null && command.length > 0) {
+             bluetoothReader.transmitApdu(command);
+             setApduResponse(new ApduCommand(), "selectFile");
+        }
+
         return false;
     }
 
@@ -461,13 +452,36 @@ class AcrBluetooth implements CardReader {
         return bluetoothReader.transmitApdu(apduCommand.createCommand());
     }
 
-    private boolean writeRecord(byte recordNumber, byte offset, byte[] dataToWrite){
+    private boolean writeRecord(byte recordNumber, byte offset, byte[] dataToWrite)throws Exception{
+        ApduCommand apdu;
+
+        if (dataToWrite == null || dataToWrite.length < 1)
+            throw new Exception ("Data to write is not specified");
+
+        if (dataToWrite.length > 255)
+            throw new Exception ("Data to write is too long");
+
+        apdu = new ApduCommand();
+
+        apdu.setCommand((byte)0x80, (byte)0xD2, recordNumber, offset, (byte)dataToWrite.length);
+        apdu.setData(dataToWrite);
+        byte[] apduCommand = apdu.createCommand();
+        boolean val = bluetoothReader.transmitApdu(apduCommand);
+        setApduResponse(apdu, "write");
+        /*if (apdu.getSw()[0] != (byte)0x90 )
+            throw new Exception (getErrorMessage(apdu.getSw()));*/
+        return val;
+    }
+
+    private boolean writeRec(byte recordNumber, byte offset, byte[] dataToWrite){
         //byte command[] = Utils.getTextinHexBytes(AcosCommand.WRITE_BINARY);
         ApduCommand apduCommand = new ApduCommand();
         apduCommand.setCommand(AcosCommand.CLA, AcosCommand.WRITE_INS, recordNumber, offset, (byte)dataToWrite.length);
         apduCommand.setData(dataToWrite);
         apduAvailable = false;
-        return bluetoothReader.transmitApdu(apduCommand.createCommand());
+        byte[] command = apduCommand.createCommand();
+        boolean val = bluetoothReader.transmitApdu(command);
+        return val;
     }
 
     private String getResponseString(byte[] response, int errorCode) {
@@ -582,7 +596,7 @@ class AcrBluetooth implements CardReader {
         apdu.setCommand((byte)0x80, (byte)0x30, (byte)0x00, (byte)0x00, (byte)0x00);
         byte[] apduCommand = apdu.createCommand();
         bluetoothReader.transmitApdu(apduCommand);
-        setApduResponse(apdu);
+        setApduResponse(apdu, "clearCard");
         if (apdu.getSw()[0] != (byte)0x90)
             throw new Exception (getErrorMessage(apdu.getSw()));
     }
@@ -598,7 +612,7 @@ class AcrBluetooth implements CardReader {
         byte[] apduCommand = apdu.createCommand();
         apduAvailable = false;
         bluetoothReader.transmitApdu(apduCommand);
-        setApduResponse(apdu);
+        setApduResponse(apdu, "submitCode");
         if (apdu.getSw()[0] == (byte)0x63)
         {
             int triesLeft = apdu.getSw()[1] - (byte)0xC0;
@@ -631,7 +645,7 @@ class AcrBluetooth implements CardReader {
         apduAvailable = false;
 
         bluetoothReader.transmitApdu(apduCommand);
-        setApduResponse(apdu);
+        setApduResponse(apdu, "submitcode");
         if (apdu.getSw()[0] == (byte)0x63)
         {
             int triesLeft = apdu.getSw()[1] - (byte)0xC0;
@@ -692,7 +706,7 @@ class AcrBluetooth implements CardReader {
         byte[] apduCommand = apdu.createCommand();
 
         bluetoothReader.transmitApdu(apduCommand);
-        setApduResponse(apdu);
+        setApduResponse(apdu, "selectFile");
         //todo: check response and act
     }
 
@@ -709,7 +723,7 @@ class AcrBluetooth implements CardReader {
             data = new byte[] { optionRegister.getRawValue(), securityRegister.getRawValue(), NumberOfFiles, 0x00 };
             this.writeRecord((byte)0x00, (byte)0x00, data);
             ApduCommand command = new ApduCommand();
-            setApduResponse(command);
+            setApduResponse(command, "configurePersonalizationFile");
 
         }
         catch (Exception ex)
@@ -718,8 +732,8 @@ class AcrBluetooth implements CardReader {
         }
     }
 
-    private void setApduResponse(ApduCommand apduCommand){
-        int limit = 10;
+    private void setApduResponse(ApduCommand apduCommand, String tag){
+        int limit = 20;
         int counter = 0;
         while(!apduAvailable)
         {
@@ -733,32 +747,37 @@ class AcrBluetooth implements CardReader {
         }
         if(apduAvailable){
             apduCommand.setSw(responseApdu);
+            Log.i(tag, "ok");
         }
+
+        else
+            Log.e(tag, "fail");
     }
 
     private void formatCard()
     {
         try {
             // submit code
-            submitCode(CODE_TYPE.AC1, "ACOSTEST");
+            submitCode(CODE_TYPE.IC, "ACOSTEST");
 
             // clearCard
             clearCard();
 
             // submit code
-            submitCode(CODE_TYPE.AC1, "ACOSTEST");
+            submitCode(CODE_TYPE.IC, "ACOSTEST");
 
             // select file FF 02
             selectFile(new byte[]{(byte) 0xFF, (byte) 0x02});
 
             //write card
             writeRecord((byte) 0x00, (byte) 0x00, new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x07, (byte) 0x00});
+            setApduResponse(new ApduCommand(), "formatCard - 753");
 
             // select card
             selectFile(new byte[]{(byte) 0xFF, (byte) 0x04});
 
             // submit code
-            submitCode(CODE_TYPE.AC1, "ACOSTEST");
+            submitCode(CODE_TYPE.IC, "ACOSTEST");
 
             // configure personalization
             //Set Option Registers and Security Option Registers
@@ -797,35 +816,45 @@ class AcrBluetooth implements CardReader {
             // Write to FF 04
             //   Write to first record of FF 04 (AA 00)
             writeRecord((byte) 0x00, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x0A, (byte) 0x00, (byte) 0x00, (byte) 0xAA, (byte) 0x00, (byte) 0x00});
+            setApduResponse(new ApduCommand(), "formatCard - 808");
 
 
             // Write to second record of FF 04 (BB 22)
             writeRecord((byte) 0x01, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x20, (byte) 0x00, (byte) 0x00, (byte) 0xBB, (byte) 0x00, (byte) 0x00});
-
+            setApduResponse(new ApduCommand(), "formatCard - 813");
 
             // write to third record of FF 04 (CC 33)
             writeRecord((byte) 0x02, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x0A, (byte) 0x00, (byte) 0x00, (byte) 0xCC, (byte) 0x00, (byte) 0x00});
-
+            setApduResponse(new ApduCommand(), "formatCard - 817");
 
             // write to fourth record of FF 04 (DD 44)
             writeRecord((byte) 0x03, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x00, (byte) 0x00});
-
+            setApduResponse(new ApduCommand(), "formatCard - 821");
 
             // write to fifth record of FF 04 (DD 44)
             writeRecord((byte) 0x04, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x11, (byte) 0x00});
-
+            setApduResponse(new ApduCommand(), "formatCard - 825");
 
             // write to sixth record of FF 04 (DD 44)
             writeRecord((byte) 0x05, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x22, (byte) 0x00});
-
+            setApduResponse(new ApduCommand(), "formatCard - 829");
 
             // write to seventh record of FF 04 (DD 44)
             writeRecord((byte) 0x06, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x33, (byte) 0x00});
-
+            setApduResponse(new ApduCommand(), "formatCard - 833");
         }
 
         catch (Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
+    public void clean(){
+        authenticate();
+        if(!checkIfAuthenticated()){
 
         }
+        bluetoothReader.powerOnCard();
+        formatCard();
     }
 }

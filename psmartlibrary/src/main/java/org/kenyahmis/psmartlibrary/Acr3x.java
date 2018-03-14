@@ -24,6 +24,11 @@ class Acr3x implements CardReader{
     }
 
     @Override
+    public void clean() {
+
+    }
+
+    @Override
      public byte[] WriteCard(String data) {
          return null;
      }

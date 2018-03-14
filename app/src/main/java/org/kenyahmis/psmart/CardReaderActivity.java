@@ -94,7 +94,7 @@ public class CardReaderActivity extends AppCompatActivity {
                 }else{
                     progressDialog.setTitle("Writing Data");
                     progressDialog.show();
-                    String message = getIntent().getExtras().getString("shr_message", null);
+                    String message = getIntent().getExtras().getString("WRITE_DATA", null);
                     if(message!=null)
                         new WriteTask().execute(message);
                 }

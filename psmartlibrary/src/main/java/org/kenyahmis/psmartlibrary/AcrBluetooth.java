@@ -89,19 +89,25 @@ class AcrBluetooth implements CardReader {
         SHRMessage shrMessage = new SHRMessage();
         List<String> errors = null;
         try {
+            authenticated = false;
             authenticate();
-            bluetoothReader.powerOnCard();
             if(!checkIfAuthenticated()){
 
             }
-
+            bluetoothReader.powerOnCard();
             // call user file setting file to read
 
             // read immunization
             String cardDetailsString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
+            Log.i("cardDetailsString", cardDetailsString);
             String immunizationString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+            Log.i("immunizationString", immunizationString);
             String hivTestString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
-            //String identifiers = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
+            Log.i("hivTestString", hivTestString);
+            String identifiersExternal = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME));
+            Log.i("identifiersExternal", identifiersExternal);
+            String identifiersAddress = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
+            Log.i("identifiersAddress", identifiersAddress);
 
             CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetailsString);
             Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationString);
@@ -140,10 +146,10 @@ class AcrBluetooth implements CardReader {
 
             // Select user file
             selectFile(fileId);
-
             // read first record of user file selected
             //TODO: displayOut(0, 0, "\nRead Record");
             data = readRecord((byte)0x00, (byte)0x00, dataLen);
+            String hex = responseInHexString;
             readMsg = Utils.byteArrayToString(data, data.length);
             //SmartCardUtils.displayOut(loggerWidget, ">>Data from Smart Card: \n " + readMsg);
 
@@ -491,13 +497,13 @@ class AcrBluetooth implements CardReader {
 
         apdu = new ApduCommand();
         apdu.setCommand((byte)0x80, (byte)0xB2, recordNumber, offset, lengthToRead);
-
+        apduAvailable = false;
         byte[] apduCommand = apdu.createCommand();
         bluetoothReader.transmitApdu(apduCommand);
         setApduResponse(apdu, "read");
 
-        if (apdu.getResponseApdu()[0] != (byte)0x90)
-            throw new Exception (getErrorMessage(apdu.getResponseApdu()));
+        /*if (apdu.getResponseApdu()[0] != (byte)0x90)
+            throw new Exception (getErrorMessage(apdu.getResponseApdu()));*/
 
         return apdu.getResponseApdu();
     }

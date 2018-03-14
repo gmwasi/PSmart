@@ -240,19 +240,30 @@ public class PSmartCard implements Card {
 
     @Override
     public Response Write(String shr){
+
+
         SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, shr);
         String cardDetailString = serializer.serialize(shrMessage.getCardDetail());
         String immunizationString = serializer.serialize(shrMessage.getImmunizations());
         String hivTestString = serializer.serialize(shrMessage.getHivTests());
+        //String InternalIdString = serializer.serialize(shrMessage.getPatientIdentification().getInternalpatientids());
+        String externalIdString = serializer.serialize(shrMessage.getPatientIdentification().getExternalpatientid());
+        String addressString = serializer.serialize(shrMessage.getPatientIdentification().getPatientaddress());
 
         reader.clean();
         Log.i("WRITE", "Started writing");
         Log.i("WRITE", "card details length" + cardDetailString.getBytes().length);
         Log.i("WRITE", "card details length" + immunizationString.getBytes().length);
         Log.i("WRITE", "card details length" + hivTestString.getBytes().length);
+        //Log.i("WRITE", "card details length" + InternalIdString.getBytes().length); 572  excess
+        Log.i("WRITE", "card details length" + externalIdString.getBytes().length);
+        Log.i("WRITE", "card details length" + addressString.getBytes().length);
         reader.writeUserFile(cardDetailString, SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
         reader.writeUserFile(immunizationString, SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
         reader.writeUserFile(hivTestString, SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+        //reader.writeUserFile(InternalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
+        reader.writeUserFile(externalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME));
+        reader.writeUserFile(addressString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
 
         return null;
     }

@@ -345,7 +345,7 @@ class AcrBluetooth implements CardReader {
                         responseInHexString = getResponseString(apdu, errorCode);
                         responseApdu = apdu;
                         apduAvailable = true;
-                        Log.i("RESPONSE: ", "apdu - "+ responseInHexString + " error - "+errorCode);
+                       // Log.i("RESPONSE: ", "apdu - "+ responseInHexString + " error - "+errorCode);
                     }
 
                 });

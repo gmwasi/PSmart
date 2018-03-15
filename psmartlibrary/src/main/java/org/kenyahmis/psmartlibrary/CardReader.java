@@ -31,4 +31,6 @@ interface CardReader {
     // Returns:
     //     Message stating if written successfully or if not error message
     byte[] WriteCard(String data);
+
+    void powerOff();
 }

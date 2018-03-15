@@ -40,4 +40,9 @@ class Acr3x implements CardReader{
      public byte[] WriteCard(String data) {
          return null;
      }
- }
+
+    @Override
+    public void powerOff() {
+
+    }
+}

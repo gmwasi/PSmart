@@ -20,6 +20,7 @@ public class SmartCardUtils {
     public static final String IDENTIFIERS_USER_FILE_EXTERNAL = "External Patient Identifiers";
     public static final String IDENTIFIERS_USER_FILE_DEMOGRAPHICS = "Patient Names";
     public static final String IDENTIFIERS_USER_FILE_ADDRESS = "Patient Address";
+    public static final String IDENTIFIERS_USER_FILE_DEMOGRAPHICS_OTHERS = "Additional Demographics";
     public static final String IDENTIFIERS_USER_FILE_MOTHERDETAILS="Mother Name";
     public static final String IDENTIFIERS_USER_FILE_MOTHERIDENTIFIER="Mother Identifier";
 
@@ -31,6 +32,7 @@ public class SmartCardUtils {
     public static final String IDENTIFIERS_USER_FILE_EXTERNAL_NAME = "DD 00";
     public static final String IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME = "DD 22";
     public static final String IDENTIFIERS_USER_FILE_ADDRESS_NAME = "DD 33";
+    public static final String IDENTIFIERS_USER_FILE_DEMOGRAPHICS_OTHERS_NAME = "DD 44";
     public static final String IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME="EE 00";
     public static final String IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME="EE 11";
 

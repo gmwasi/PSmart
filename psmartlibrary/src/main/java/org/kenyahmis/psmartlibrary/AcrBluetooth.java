@@ -8,21 +8,12 @@ import com.acs.bluetooth.BluetoothReader;
 
 import org.kenyahmis.psmartlibrary.AcosCard.OptionRegister;
 import org.kenyahmis.psmartlibrary.AcosCard.SecurityOptionRegister;
-import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.AcosCommand;
 import org.kenyahmis.psmartlibrary.Models.ApduCommand;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
 import org.kenyahmis.psmartlibrary.Models.Response;
-import org.kenyahmis.psmartlibrary.Models.SHR.CardDetail;
-import org.kenyahmis.psmartlibrary.Models.SHR.ExternalPatientId;
-import org.kenyahmis.psmartlibrary.Models.SHR.HIVTest;
-import org.kenyahmis.psmartlibrary.Models.SHR.Immunization;
-import org.kenyahmis.psmartlibrary.Models.SHR.PatientAddress;
-import org.kenyahmis.psmartlibrary.Models.SHR.PatientIdentification;
-import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,13 +66,6 @@ class AcrBluetooth implements CardReader {
         INTERNAL_FILE(int id){this._id = id;}
     }
 
-    public enum CARD_INFO_TYPE
-    {
-        CARD_SERIAL,
-        EEPROM,
-        VERSION_NUMBER;
-    }
-
     AcrBluetooth(BluetoothReader reader){
         deserializer = new Deserializer();
         serializer = new Serializer();
@@ -120,7 +104,7 @@ class AcrBluetooth implements CardReader {
             shrStr += ", \t\"NEXT_OF_KIN\": []";
             shrStr += ", \t\"VERSION\": \"1.0.0\"";
             shrStr += "\n}";
-
+            bluetoothReader.powerOffCard();
         } catch (Exception e) {
             e.printStackTrace();
             errors.add(e.getMessage());
@@ -552,9 +536,10 @@ class AcrBluetooth implements CardReader {
 
         apdu.setCommand((byte)0x80, (byte)0xD2, recordNumber, offset, (byte)dataToWrite.length);
         apdu.setData(dataToWrite);
+        apduAvailable = false;
         byte[] apduCommand = apdu.createCommand();
         boolean val = bluetoothReader.transmitApdu(apduCommand);
-        setApduResponse(apdu, "write");
+        setApduResponse(apdu, "writeRecord - "+apdu.getResponseApdu());
         /*if (apdu.getResponseApdu()[0] != (byte)0x90 )
             throw new Exception (getErrorMessage(apdu.getResponseApdu()));*/
         return val;
@@ -860,7 +845,6 @@ class AcrBluetooth implements CardReader {
 		       This will create 6 User files, no Option registers and
 		       Security Option registers defined, Personalization bit is not set */
             writeRecord((byte) 0x00, (byte) 0x00, new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x09, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 753");
 
             // select card
             selectFile(new byte[]{(byte) 0xFF, (byte) 0x04});
@@ -896,7 +880,7 @@ class AcrBluetooth implements CardReader {
             //Number of File = 3
             //Select Personalization File
 
-            configurePersonalizationFile(optionRegister, securityOptionRegister, (byte)0x07);
+            configurePersonalizationFile(optionRegister, securityOptionRegister, (byte)0x09);
 
             //
             submitCode(CODE_TYPE.IC, "ACOSTEST");
@@ -905,40 +889,31 @@ class AcrBluetooth implements CardReader {
             // Write to FF 04
             //   Write to first record of FF 04 (AA 00)
             writeRecord((byte) 0x00, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x0A, (byte) 0x00, (byte) 0x00, (byte) 0xAA, (byte) 0x00, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 808");
 
 
             // Write to second record of FF 04 (BB 22)
             writeRecord((byte) 0x01, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x20, (byte) 0x00, (byte) 0x00, (byte) 0xBB, (byte) 0x00, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 813");
 
             // write to third record of FF 04 (CC 33)
             writeRecord((byte) 0x02, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x0A, (byte) 0x00, (byte) 0x00, (byte) 0xCC, (byte) 0x00, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 817");
 
             // write to fourth record of FF 04 (DD 44)
             writeRecord((byte) 0x03, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x00, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 821");
 
             // write to fifth record of FF 04 (DD 44)
             writeRecord((byte) 0x04, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x11, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 825");
 
             // write to sixth record of FF 04 (DD 44)
             writeRecord((byte) 0x05, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x22, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 829");
 
             // write to seventh record of FF 04 (DD 44)
             writeRecord((byte) 0x06, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x33, (byte) 0x00});
-            setApduResponse(new ApduCommand(), "formatCard - 833");
 
             // write to eighth record of FF 04 (EE 00)
             writeRecord((byte)0x07, (byte)0x00, new byte[] { (byte)0xFF, (byte)0x40, (byte)0x00, (byte)0x00, (byte)0xEE, (byte)0x00, (byte)0x00 });
-            setApduResponse(new ApduCommand(), "formatCard - 953");
 
             // write to ninth record of FF 04 (EE 11)
             writeRecord((byte)0x08, (byte)0x00, new byte[] { (byte)0xFF, (byte)0x40, (byte)0x00, (byte)0x00, (byte)0xEE, (byte)0x11, (byte)0x00 });
-            setApduResponse(new ApduCommand(), "formatCard - 958");
         }
 
         catch (Exception ex){
@@ -953,5 +928,10 @@ class AcrBluetooth implements CardReader {
         }
         bluetoothReader.powerOnCard();
         formatCard();
+    }
+
+    @Override
+    public void powerOff(){
+        bluetoothReader.powerOffCard();
     }
 }

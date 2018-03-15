@@ -192,10 +192,10 @@ public class BluetoothReaderInitializer {
 
     public BluetoothReader getReader() throws InterruptedException{
 
-        int maxcount = 10;
+        int maxcount = 20;
         for(int i = 0; i<maxcount; i++){
             if(!readerReady){
-                Thread.sleep(1000);
+                Thread.sleep(500);
             }
             else {
                 break;

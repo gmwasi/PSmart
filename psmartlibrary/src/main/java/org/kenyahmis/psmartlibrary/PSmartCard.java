@@ -83,16 +83,26 @@ public class PSmartCard implements Card {
 
             //write user files
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), cardDetails, (byte)0x00);
+            Log.i("cardDetails","ok");
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), patientExternalIdentifiers, (byte)0x00);
+            Log.i("patientExternal","ok");
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), addressDetails, (byte)0x00);
+            Log.i("addressDetails","ok");
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), motherDetails, (byte)0x00);
+            Log.i("motherDetails","ok");
 
             //write arrays
             reader.writeArray(immunizationDetails, SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+            Log.i("immunizationDetails","ok");
             reader.writeArray(hivTests, SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+            Log.i("hivTests","ok");
             reader.writeArray(internalIdentifiers, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
+            Log.i("internalIdentifiers","ok");
             reader.writeArray(demographics, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
+            Log.i("demographics","ok");
             reader.writeArray(motherIdentifiers, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
+            Log.i("motherIdentifiers","ok");
+            reader.powerOff();
 
             // create addendum
             Addendum addendum = new Addendum();
@@ -161,6 +171,7 @@ public class PSmartCard implements Card {
 
             // Mock Message
             String mockMessage = "{\n" +
+                    "  \"VERSION\": \"1.0.0\",\n" +
                     "  \"PATIENT_IDENTIFICATION\": {\n" +
                     "    \"EXTERNAL_PATIENT_ID\": {\n" +
                     "      \"ID\": \"110ec58a-a0f2-4ac4-8393-c866d813b8d1\",\n" +
@@ -194,9 +205,9 @@ public class PSmartCard implements Card {
                     "        \"ASSIGNING_FACILITY\": \"10829\"\n" +
                     "      },\n" +
                     "      {\n" +
-                    "        \"ID\": \"12345678\",\n" +
-                    "        \"IDENTIFIER_TYPE\": \"PMTCT_NUMBER\",\n" +
-                    "        \"ASSIGNING_AUTHORITY\": \"PMTCT\",\n" +
+                    "        \"ID\": \"ABC567\",\n" +
+                    "        \"IDENTIFIER_TYPE\": \"ANC_NUMBER\",\n" +
+                    "        \"ASSIGNING_AUTHORITY\": \"ANC\",\n" +
                     "        \"ASSIGNING_FACILITY\": \"10829\"\n" +
                     "      }\n" +
                     "    ],\n" +
@@ -248,9 +259,9 @@ public class PSmartCard implements Card {
                     "          \"ASSIGNING_FACILITY\": \"10829\"\n" +
                     "        },\n" +
                     "        {\n" +
-                    "          \"ID\": \"ABC567\",\n" +
-                    "          \"IDENTIFIER_TYPE\": \"ANC_NUMBER\",\n" +
-                    "          \"ASSIGNING_AUTHORITY\": \"ANC\",\n" +
+                    "          \"ID\": \"12345678\",\n" +
+                    "          \"IDENTIFIER_TYPE\": \"PMTCT_NUMBER\",\n" +
+                    "          \"ASSIGNING_AUTHORITY\": \"PMTCT\",\n" +
                     "          \"ASSIGNING_FACILITY\": \"10829\"\n" +
                     "        }\n" +
                     "      ]\n" +
@@ -271,7 +282,7 @@ public class PSmartCard implements Card {
                     "      \"CONTACT_ROLE\": \"T\"\n" +
                     "    }\n" +
                     "  ],\n" +
-                    "  \"HIV_TESTS\": [\n" +
+                    "  \"HIV_TEST\": [\n" +
                     "    {\n" +
                     "      \"DATE\": \"20180101\",\n" +
                     "      \"RESULT\": \"POSITIVE/NEGATIVE/INCONCLUSIVE\",\n" +
@@ -279,30 +290,20 @@ public class PSmartCard implements Card {
                     "      \"FACILITY\": \"10829\",\n" +
                     "      \"STRATEGY\": \"HP/NP/VI/VS/HB/MO/O\",\n" +
                     "      \"PROVIDER_DETAILS\": {\n" +
-                    "        \"NAME\": \"AFYA JIJINI***STILL IN REVIEW\"\n" +
+                    "        \"NAME\": \"MATTHEW NJOROGE, MD\",\n" +
+                    "        \"ID\": \"12345-67890-abcde\"\n" +
                     "      }\n" +
                     "    }\n" +
                     "  ],\n" +
-                    "  \"IMMUNIZATIONS\": [\n" +
+                    "  \"IMMUNIZATION\": [\n" +
                     "    {\n" +
                     "      \"NAME\": \"BCG/OPV_AT_BIRTH/OPV1/OPV2/OPV3/PCV10-1/PCV10-2/PCV10-3/PENTA1/PENTA2/PENTA3/MEASLES6/MEASLES9/MEASLES18/ROTA1/ROTA2\",\n" +
                     "      \"DATE_ADMINISTERED\": \"20180101\"\n" +
                     "    }\n" +
                     "  ],\n" +
-                    "  \"MERGE_PATIENT_INFORMATION\": {\n" +
-                    "    \"PRIOR_INTERNAL_IDENTIFIERS\": [\n" +
-                    "      {\n" +
-                    "        \"ID\": \"12345678-67676767-0987654-XXXXYYYY\",\n" +
-                    "        \"IDENTIFIER_TYPE\": \"CARD_SERIAL_NUMBER\",\n" +
-                    "        \"ASSIGNING_AUTHORITY\": \"CARD_REGISTRY\",\n" +
-                    "        \"ASSIGNING_FACILITY\": \"12345\",\n" +
-                    "        \"REPLACEMENT_REASON\": \"LOST\"\n" +
-                    "      }\n" +
-                    "    ]\n" +
-                    "  },\n" +
                     "  \"CARD_DETAILS\": {\n" +
                     "    \"STATUS\": \"ACTIVE/INACTIVE\",\n" +
-                    "    \"REASON\": \"\",\n" +
+                    "    \"REASON\": \"LOST/DEATH/DAMAGED\",\n" +
                     "    \"LAST_UPDATED\": \"20180101\",\n" +
                     "    \"LAST_UPDATED_FACILITY\": \"10829\"\n" +
                     "  }\n" +

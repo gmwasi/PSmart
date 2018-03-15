@@ -241,7 +241,32 @@ public class PSmartCard implements Card {
         reader.writeUserFile(externalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME));
         reader.writeUserFile(addressString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
 
-        return null;
+
+        // create addendum
+        Addendum addendum = new Addendum();
+        addendum.setCardDetail(shrMessage.getCardDetail());
+
+        List<InternalPatientId> internalPatientIds =  shrMessage.getPatientIdentification().getInternalpatientids();
+        List<Identifier> addendumIdentifiers = new ArrayList<>();
+
+        // loop through the internal identifiers to construct Addendum Identifier
+        for (InternalPatientId id: internalPatientIds ) {
+            Identifier identifier = new Identifier();
+            identifier.setId(id.getID());
+            identifier.setAssigningAuthority(id.getAssigningauthority());
+            identifier.setAssigningFacility(id.getAssigningauthority());
+            identifier.setIdentifierType(id.getIdentifiertype());
+            addendumIdentifiers.add(identifier);
+        }
+
+        addendum.setIdentifiers(addendumIdentifiers);
+
+
+        String encryptedSHR = encryption.encrypt(EncrytionKeys.SHR_KEY, shr);
+        TransmissionMessage transmitMessage = new TransmissionMessage(encryptedSHR, addendum);
+        String transmitString = serializer.serialize(transmitMessage);
+        Response response = new WriteResponse(transmitString, null);
+        return response;
     }
 
 

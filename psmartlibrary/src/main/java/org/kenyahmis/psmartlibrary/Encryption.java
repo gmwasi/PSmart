@@ -3,8 +3,7 @@ package org.kenyahmis.psmartlibrary;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.codec.binary.Base64;
-import org.kenyahmis.psmartlibrary.EncrytionKeys;
+import org.kenyahmis.psmartlibrary.Encode.Base64;
 /**
  * Created by GMwasi on 2/9/2018.
  */

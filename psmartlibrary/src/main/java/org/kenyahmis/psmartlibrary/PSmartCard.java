@@ -217,56 +217,62 @@ public class PSmartCard implements Card {
     @Override
     public Response Write(String shr){
 
+        try {
+            SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, shr);
+            String cardDetailString = serializer.serialize(shrMessage.getCardDetail());
+            String immunizationString = serializer.serialize(shrMessage.getImmunizations());
+            String hivTestString = serializer.serialize(shrMessage.getHivTests());
+            //String InternalIdString = serializer.serialize(shrMessage.getPatientIdentification().getInternalpatientids());
+            String externalIdString = serializer.serialize(shrMessage.getPatientIdentification().getExternalpatientid());
+            String addressString = serializer.serialize(shrMessage.getPatientIdentification().getPatientaddress());
 
-        SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, shr);
-        String cardDetailString = serializer.serialize(shrMessage.getCardDetail());
-        String immunizationString = serializer.serialize(shrMessage.getImmunizations());
-        String hivTestString = serializer.serialize(shrMessage.getHivTests());
-        //String InternalIdString = serializer.serialize(shrMessage.getPatientIdentification().getInternalpatientids());
-        String externalIdString = serializer.serialize(shrMessage.getPatientIdentification().getExternalpatientid());
-        String addressString = serializer.serialize(shrMessage.getPatientIdentification().getPatientaddress());
-
-        reader.clean();
-        Log.i("WRITE", "Started writing");
-        Log.i("WRITE", "card details length" + cardDetailString.getBytes().length);
-        Log.i("WRITE", "card details length" + immunizationString.getBytes().length);
-        Log.i("WRITE", "card details length" + hivTestString.getBytes().length);
-        //Log.i("WRITE", "card details length" + InternalIdString.getBytes().length); 572  excess
-        Log.i("WRITE", "card details length" + externalIdString.getBytes().length);
-        Log.i("WRITE", "card details length" + addressString.getBytes().length);
-        reader.writeUserFile(cardDetailString, SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
-        reader.writeUserFile(immunizationString, SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
-        reader.writeUserFile(hivTestString, SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
-        //reader.writeUserFile(InternalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
-        reader.writeUserFile(externalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME));
-        reader.writeUserFile(addressString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
+            reader.clean();
+            Log.i("WRITE", "Started writing");
+            Log.i("WRITE", "card details length" + cardDetailString.getBytes().length);
+            Log.i("WRITE", "card details length" + immunizationString.getBytes().length);
+            Log.i("WRITE", "card details length" + hivTestString.getBytes().length);
+            //Log.i("WRITE", "card details length" + InternalIdString.getBytes().length); 572  excess
+            Log.i("WRITE", "card details length" + externalIdString.getBytes().length);
+            Log.i("WRITE", "card details length" + addressString.getBytes().length);
+            reader.writeUserFile(cardDetailString, SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
+            reader.writeUserFile(immunizationString, SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+            reader.writeUserFile(hivTestString, SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+            //reader.writeUserFile(InternalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
+            reader.writeUserFile(externalIdString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME));
+            reader.writeUserFile(addressString, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
 
 
-        // create addendum
-        Addendum addendum = new Addendum();
-        addendum.setCardDetail(shrMessage.getCardDetail());
+            // create addendum
+            Addendum addendum = new Addendum();
+            addendum.setCardDetail(shrMessage.getCardDetail());
 
-        List<InternalPatientId> internalPatientIds =  shrMessage.getPatientIdentification().getInternalpatientids();
-        List<Identifier> addendumIdentifiers = new ArrayList<>();
+            List<InternalPatientId> internalPatientIds = shrMessage.getPatientIdentification().getInternalpatientids();
+            List<Identifier> addendumIdentifiers = new ArrayList<>();
 
-        // loop through the internal identifiers to construct Addendum Identifier
-        for (InternalPatientId id: internalPatientIds ) {
-            Identifier identifier = new Identifier();
-            identifier.setId(id.getID());
-            identifier.setAssigningAuthority(id.getAssigningauthority());
-            identifier.setAssigningFacility(id.getAssigningauthority());
-            identifier.setIdentifierType(id.getIdentifiertype());
-            addendumIdentifiers.add(identifier);
+            // loop through the internal identifiers to construct Addendum Identifier
+            for (InternalPatientId id : internalPatientIds) {
+                Identifier identifier = new Identifier();
+                identifier.setId(id.getID());
+                identifier.setAssigningAuthority(id.getAssigningauthority());
+                identifier.setAssigningFacility(id.getAssigningauthority());
+                identifier.setIdentifierType(id.getIdentifiertype());
+                addendumIdentifiers.add(identifier);
+            }
+
+            addendum.setIdentifiers(addendumIdentifiers);
+
+
+            String encryptedSHR = encryption.encrypt(EncrytionKeys.SHR_KEY, shr);
+            TransmissionMessage transmitMessage = new TransmissionMessage(encryptedSHR, addendum);
+            String transmitString = serializer.serialize(transmitMessage);
+            Response response = new WriteResponse(transmitString, null);
+            return response;
         }
 
-        addendum.setIdentifiers(addendumIdentifiers);
-
-
-        String encryptedSHR = encryption.encrypt(EncrytionKeys.SHR_KEY, shr);
-        TransmissionMessage transmitMessage = new TransmissionMessage(encryptedSHR, addendum);
-        String transmitString = serializer.serialize(transmitMessage);
-        Response response = new WriteResponse(transmitString, null);
-        return response;
+        catch (Exception ex){
+            ex.printStackTrace();
+            return null;
+        }
     }
 
 

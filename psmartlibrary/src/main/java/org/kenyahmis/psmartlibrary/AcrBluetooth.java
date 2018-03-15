@@ -23,7 +23,9 @@ import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by GMwasi on 2/10/2018.
@@ -91,7 +93,7 @@ class AcrBluetooth implements CardReader {
 
     @Override
     public Response ReadCard() {
-        SHRMessage shrMessage = new SHRMessage();
+        String shrStr = null;
         List<String> errors = null;
         try {
             authenticated = false;
@@ -100,52 +102,48 @@ class AcrBluetooth implements CardReader {
 
             }
             bluetoothReader.powerOnCard();
-            // call user file setting file to read
 
-            // read immunization
-            String cardDetailsString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME));
-            Log.i("cardDetailsString", cardDetailsString);
-            String immunizationString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
-            Log.i("immunizationString", immunizationString);
-            String hivTestString = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
-            Log.i("hivTestString", hivTestString);
-            String identifiersExternal = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME));
-            Log.i("identifiersExternal", identifiersExternal);
-            String identifiersAddress = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME));
-            Log.i("identifiersAddress", identifiersAddress);
+            shrStr = "{\n";
+            shrStr += "\t\"CARD_DETAILS\": " +  readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), (byte)0x00 );
+            shrStr += ", \t\"IMMUNIZATION\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME)) + "]";
+            shrStr += ",\t\"HIV_TEST\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME))+ "]";
 
-            CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetailsString);
-            Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationString);
-            List<Immunization> immunizations = new ArrayList<>();
-            for (Immunization immunization: immunizationArray ) {
-                immunizations.add(immunization);
-            }
+            shrStr += ", \t\"PATIENT_IDENTIFICATION\": {\n";
+            shrStr += "  \t\"PATIENT_NAME\": " + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
 
-            HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTestString);
-            List<HIVTest> hivTests = new ArrayList<>();
-            for (HIVTest hivTest : hivTestsArray ) {
-                hivTests.add(hivTest);
-            }
+            shrStr += ", \t\"EXTERNAL_PATIENT_ID\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), (byte)0x00);
+            shrStr += ", \t\"INTERNAL_PATIENT_ID\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME)) + "]";
+            shrStr += ", \t\"PATIENT_ADDRESS\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), (byte)0x00);
+            shrStr += ", \t\"MOTHER_DETAILS\": { \n\t\"MOTHER_NAME\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte)0x00);
+            shrStr += ", \t\"MOTHER_IDENTIFIER\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME)) + "]";
+            shrStr += "}\n}";
+            shrStr += ", \t\"NEXT_OF_KIN\": []";
+            shrStr += ", \t\"VERSION\": \"1.0.0\"";
+            shrStr += "\n}";
 
-            ExternalPatientId externalPatientId = deserializer.deserialize(ExternalPatientId.class, identifiersExternal);
-            PatientAddress patientAddress = deserializer.deserialize(PatientAddress.class, identifiersAddress);
-
-            PatientIdentification patientIdentification = new PatientIdentification();
-            patientIdentification.setExternalpatientid(externalPatientId);
-            patientIdentification.setPatientaddress(patientAddress);
-            shrMessage.setPatientIdentification(patientIdentification);
-            shrMessage.setCardDetail(cardDetail);
-            shrMessage.setImmunizations(immunizations);
-            shrMessage.setHivTests(hivTests);
         } catch (Exception e) {
             e.printStackTrace();
             errors.add(e.getMessage());
         }
-        String shrString = serializer.serialize(shrMessage);
-        return new ReadResponse(shrString, errors);
+        return new ReadResponse(shrStr, errors);
     }
 
-    private String readUserFile(UserFile userFile) {
+    @Override
+    public String readArray(UserFile userFile) {
+        StringBuilder builder = new StringBuilder();
+        String data = "";
+        for(int i=0; i<255;i++) {
+            String readData = readUserFile(userFile, getByte(i));
+            if(readData.startsWith("ÿÿÿ")){
+                data = builder.toString().substring(0, builder.toString().length() - 1);
+                break;
+            }
+            builder.append(readData).append(",");
+        }
+        return data;
+    }
+
+    private String readUserFile(UserFile userFile, byte recordNumber) {
         byte[] fileId = new byte[2];
         byte dataLen = 0x00;
         byte[] data;
@@ -159,9 +157,8 @@ class AcrBluetooth implements CardReader {
             selectFile(fileId);
             // read first record of user file selected
             //TODO: displayOut(0, 0, "\nRead Record");
-            data = readRecord((byte)0x00, (byte)0x00, dataLen);
-            String hex = responseInHexString;
-            readMsg = Utils.byteArrayToString(data, data.length);
+            data = readRecord( recordNumber, (byte)0x00, dataLen);
+            if (data.length > 0)readMsg = Utils.byteArrayToString(data, data.length);
             //SmartCardUtils.displayOut(loggerWidget, ">>Data from Smart Card: \n " + readMsg);
 
         }
@@ -174,7 +171,7 @@ class AcrBluetooth implements CardReader {
     }
 
     @Override
-    public String writeUserFile(String data, UserFile userFile) {
+    public String writeUserFile(UserFile userFile,String data, byte recordNumber) {
 
         byte[] fileId = new byte[2];
         int expLength = 0;
@@ -187,10 +184,6 @@ class AcrBluetooth implements CardReader {
             expLength = userFile.getFileDescriptor().getExpLength();
 
             // Select user file
-
-
-//            authenticate();
-//            bluetoothReader.powerOnCard();
             selectFile(fileId);
 
             tmpStr = data;
@@ -207,12 +200,13 @@ class AcrBluetooth implements CardReader {
                 indx++;
             }
 
-            writeRecord((byte)0x00, (byte)0x00, tmpArray);
-            setApduResponse(new ApduCommand(), "write userfile");
+            writeRecord( recordNumber, (byte)0x00, tmpArray);
+            //setApduResponse(new ApduCommand(), "write userfile");
 
         }
         catch(Exception exception)
         {
+            Log.e("An Error Occurred", exception.getMessage());
             exception.printStackTrace();
         }
         return null;
@@ -229,6 +223,32 @@ class AcrBluetooth implements CardReader {
         selectFile();
         //writeRecord();
         return null;
+    }
+
+    @Override
+    public void writeArray(List<String> elements, UserFile userFile) {
+        for(int i=0; i < elements.size();i++) {
+            String data = elements.get(i);
+            Byte aByte = getByte(i);
+            writeUserFile(userFile, data, aByte);
+        }
+    }
+
+    //TODO: Add more bytes to the map
+    public Byte getByte (Integer key) {
+        Map<Integer, Byte> recordUserFiles = new HashMap<>();
+        recordUserFiles.put(0, (byte)0x00);
+        recordUserFiles.put(1, (byte)0x01);
+        recordUserFiles.put(2, (byte)0x02);
+        recordUserFiles.put(3, (byte)0x03);
+        recordUserFiles.put(4, (byte)0x04);
+        recordUserFiles.put(5, (byte)0x05);
+        recordUserFiles.put(6, (byte)0x06);
+        recordUserFiles.put(7, (byte)0x07);
+        recordUserFiles.put(8, (byte)0x08);
+        recordUserFiles.put(9, (byte)0x09);
+        recordUserFiles.put(10, (byte)0x0A);
+        return recordUserFiles.get(key);
     }
 
     private void registerReaderListeners(){
@@ -836,8 +856,10 @@ class AcrBluetooth implements CardReader {
             // select file FF 02
             selectFile(new byte[]{(byte) 0xFF, (byte) 0x02});
 
-            //write card
-            writeRecord((byte) 0x00, (byte) 0x00, new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x07, (byte) 0x00});
+            /* Write to FF 02
+		       This will create 6 User files, no Option registers and
+		       Security Option registers defined, Personalization bit is not set */
+            writeRecord((byte) 0x00, (byte) 0x00, new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x09, (byte) 0x00});
             setApduResponse(new ApduCommand(), "formatCard - 753");
 
             // select card
@@ -909,6 +931,14 @@ class AcrBluetooth implements CardReader {
             // write to seventh record of FF 04 (DD 44)
             writeRecord((byte) 0x06, (byte) 0x00, new byte[]{(byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0xDD, (byte) 0x33, (byte) 0x00});
             setApduResponse(new ApduCommand(), "formatCard - 833");
+
+            // write to eighth record of FF 04 (EE 00)
+            writeRecord((byte)0x07, (byte)0x00, new byte[] { (byte)0xFF, (byte)0x40, (byte)0x00, (byte)0x00, (byte)0xEE, (byte)0x00, (byte)0x00 });
+            setApduResponse(new ApduCommand(), "formatCard - 953");
+
+            // write to ninth record of FF 04 (EE 11)
+            writeRecord((byte)0x08, (byte)0x00, new byte[] { (byte)0xFF, (byte)0x40, (byte)0x00, (byte)0x00, (byte)0xEE, (byte)0x11, (byte)0x00 });
+            setApduResponse(new ApduCommand(), "formatCard - 958");
         }
 
         catch (Exception ex){

@@ -10,6 +10,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class SHRMessage {
 
+    @SerializedName("VERSION")
+    @Expose
+    private String version;
     @SerializedName("PATIENT_IDENTIFICATION")
     @Expose
     private PatientIdentification patientIdentification;

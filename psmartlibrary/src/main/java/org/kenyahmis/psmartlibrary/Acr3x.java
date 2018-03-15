@@ -6,6 +6,8 @@ import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
+import java.util.List;
+
 class Acr3x implements CardReader{
 
 
@@ -15,8 +17,18 @@ class Acr3x implements CardReader{
      }
 
     @Override
-    public String writeUserFile(String data, UserFile userFile) {
+    public String readArray(UserFile userFile) {
         return null;
+    }
+
+    @Override
+    public String writeUserFile(UserFile userFile,String data, byte recordNumber) {
+        return null;
+    }
+
+    @Override
+    public void writeArray(List<String> elements, UserFile userFile) {
+
     }
 
     @Override

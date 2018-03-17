@@ -45,4 +45,9 @@ class Acr3x implements CardReader{
     public void powerOff() {
 
     }
+
+    @Override
+    public String getCardSerial() {
+        return null;
+    }
 }

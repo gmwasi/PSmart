@@ -70,6 +70,22 @@ public class PSmartCard implements Card {
         try {
             SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, shr);
 
+            reader.clean();
+            String serial = reader.getCardSerial();
+            InternalPatientId cardserialInternalId = new InternalPatientId();
+            cardserialInternalId.setID(serial);
+            cardserialInternalId.setAssigningauthority("CARD_REGISTRY");
+            cardserialInternalId.setAssigningfacility("HTS_APP");
+            cardserialInternalId.setidentifiertype("CARD_SERIAL_NUMBER");
+
+            if(shrMessage.getPatientIdentification() != null)
+            {
+                if(shrMessage.getPatientIdentification().getInternalpatientids() != null)
+                {
+                    shrMessage.getPatientIdentification().getInternalpatientids().add(cardserialInternalId);
+                }
+            }
+
             List<String> demographics = new ArrayList<>();
             StringBuilder otherDemographics = new StringBuilder();
             otherDemographics
@@ -117,8 +133,6 @@ public class PSmartCard implements Card {
             reader.writeArray(motherIdentifiers, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
             Log.i("motherIdentifiers","ok");
 
-            // get serial
-            String serial = reader.getCardSerial();
 
             reader.powerOff();
 

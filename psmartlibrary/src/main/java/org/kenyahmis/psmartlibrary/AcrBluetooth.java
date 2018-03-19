@@ -91,71 +91,94 @@ class AcrBluetooth implements CardReader {
 
     @Override
     public Response ReadCard() {
-        // read immunization
-        String cardDetails = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), (byte)0x00 );
-        String immunizationDetails = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
-        String hivTests = readArray(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
-        String patientExternalIdentifiers = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), (byte)0x00);
-        String patientInternalIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
-        String patientName = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
-        String patientAddress = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), (byte)0x00);
-        String mothersName = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte)0x00);
-        String motherIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
-
-
-        CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetails);
-        Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationDetails);
-        PatientAddress address = deserializer.deserialize(PatientAddress.class, patientAddress);
-        FullName motherName = deserializer.deserialize(FullName.class, mothersName);
-        ExternalPatientId externalPatientId = deserializer.deserialize(ExternalPatientId.class, patientExternalIdentifiers);
-
-        MotherIdentifier[] motherIdentifier = deserializer.deserialize(MotherIdentifier[].class, motherIdentifiers);
-        List<MotherIdentifier> motherIdentifierList = new ArrayList<>();
-        for (MotherIdentifier mId : motherIdentifier ) {
-            motherIdentifierList.add(mId);
-        }
-        InternalPatientId[] internalPatientId = deserializer.deserialize(InternalPatientId[].class, patientInternalIdentifiers);
-        List<InternalPatientId> InternalPatientIdList = new ArrayList<>();
-        for (InternalPatientId pId : internalPatientId ) {
-            InternalPatientIdList.add(pId);
-        }
-
-        MotherDetail motherDetail = new MotherDetail();
-        motherDetail.setMotherIdentifiers(motherIdentifierList);
-        motherDetail.setMothername(motherName);
-
-        PatientIdentification patientIdentification= deserializer.deserialize(PatientIdentification.class, patientName);
-        patientIdentification.setInternalpatientids(InternalPatientIdList);
-        patientIdentification.setExternalpatientid(externalPatientId);
-        patientIdentification.setPatientaddress(address);
-        patientIdentification.setMotherDetail(motherDetail);
-
-
-        List<Immunization> immunizations = new ArrayList<>();
-        for (Immunization immunization: immunizationArray ) {
-            immunizations.add(immunization);
-        }
-
-        HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTests);
-        List<HIVTest> hivTestsList = new ArrayList<>();
-        for (HIVTest hivTest : hivTestsArray ) {
-            hivTestsList.add(hivTest);
-        }
 
         SHRMessage shrMessage = new SHRMessage();
-        shrMessage.setCardDetail(cardDetail);
-        shrMessage.setPatientIdentification(patientIdentification);
-        shrMessage.setImmunizations(immunizations);
-        shrMessage.setHivTests(hivTestsList);
-        shrMessage.setVersion("1.0.0");
+        List<String> errors = new ArrayList<>();
+        // read immunization
+        try {
+            authenticated = false;
+            authenticate();
+            if (!checkIfAuthenticated()) {
 
-        return new ReadResponse(serializer.serialize(shrMessage), null);
+            }
+            bluetoothReader.powerOnCard();
+
+            String cardDetails = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), (byte) 0x00);
+            String immunizationDetails = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+            String hivTests = readArray(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+            String patientExternalIdentifiers = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), (byte) 0x00);
+            String patientInternalIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
+            String patientName = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
+            String patientAddress = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), (byte) 0x00);
+            String mothersName = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte) 0x00);
+            String motherIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
+
+            fetchCardSerialFromCard();
+            bluetoothReader.powerOffCard();
+
+            CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetails);
+            Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationDetails);
+            PatientAddress address = deserializer.deserialize(PatientAddress.class, patientAddress);
+            FullName motherName = deserializer.deserialize(FullName.class, mothersName);
+            ExternalPatientId externalPatientId = deserializer.deserialize(ExternalPatientId.class, patientExternalIdentifiers);
+
+            MotherIdentifier[] motherIdentifier = deserializer.deserialize(MotherIdentifier[].class, motherIdentifiers);
+            List<MotherIdentifier> motherIdentifierList = new ArrayList<>();
+            for (MotherIdentifier mId : motherIdentifier) {
+                motherIdentifierList.add(mId);
+            }
+            InternalPatientId[] internalPatientId = deserializer.deserialize(InternalPatientId[].class, patientInternalIdentifiers);
+            List<InternalPatientId> InternalPatientIdList = new ArrayList<>();
+            for (InternalPatientId pId : internalPatientId) {
+                InternalPatientIdList.add(pId);
+            }
+
+            MotherDetail motherDetail = new MotherDetail();
+            motherDetail.setMotherIdentifiers(motherIdentifierList);
+            motherDetail.setMothername(motherName);
+
+            StringBuilder sb = new StringBuilder(patientName.trim());
+
+            String val = "{ 'PATIENT_NAME':" + sb.substring(1, sb.length()-1) + "}";
+            PatientIdentification patientIdentification = deserializer.deserialize(PatientIdentification.class, val);
+            patientIdentification.setInternalpatientids(InternalPatientIdList);
+            patientIdentification.setExternalpatientid(externalPatientId);
+            patientIdentification.setPatientaddress(address);
+            patientIdentification.setMotherDetail(motherDetail);
+
+
+            List<Immunization> immunizations = new ArrayList<>();
+            for (Immunization immunization : immunizationArray) {
+                immunizations.add(immunization);
+            }
+
+            HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTests);
+            List<HIVTest> hivTestsList = new ArrayList<>();
+            for (HIVTest hivTest : hivTestsArray) {
+                hivTestsList.add(hivTest);
+            }
+
+
+            shrMessage.setCardDetail(cardDetail);
+            shrMessage.setPatientIdentification(patientIdentification);
+            shrMessage.setImmunizations(immunizations);
+            shrMessage.setHivTests(hivTestsList);
+            shrMessage.setVersion("1.0.0");
+        }
+
+        catch (Exception e) {
+        e.printStackTrace();
+        errors.add(e.getMessage());
     }
 
-    public Response Readcards() {
+        return new ReadResponse(serializer.serialize(shrMessage), errors);
+    }
+
+    //@Override
+    public Response ReadCards() {
 
         String shrStr = null;
-        List<String> errors = null;
+        List<String> errors = new ArrayList<>();
         try {
             authenticated = false;
             authenticate();
@@ -192,16 +215,21 @@ class AcrBluetooth implements CardReader {
     @Override
     public String readArray(UserFile userFile) {
         StringBuilder builder = new StringBuilder();
-        String data = "";
         for(int i=0; i<255;i++) {
             String readData = readUserFile(userFile, getByte(i));
             if(readData.startsWith("ÿÿÿ")){
-                data = builder.toString().substring(0, builder.toString().length() - 1);
                 break;
             }
             builder.append(readData).append(",");
         }
-        return data;
+        if(builder.length() > 0) {
+            builder.toString().substring(0, builder.toString().length() - 1);
+            builder.deleteCharAt(builder.length()-1);
+        } else {
+            builder.append("");
+        }
+
+        return  "[" + builder.toString() + "]" ;
     }
 
     private String readUserFile(UserFile userFile, byte recordNumber) {

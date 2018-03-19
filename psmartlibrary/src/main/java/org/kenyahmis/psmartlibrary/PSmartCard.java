@@ -124,13 +124,29 @@ public class PSmartCard implements Card {
 
             // create addendum
             Addendum addendum = new Addendum();
+            List<Identifier> identifierList = new ArrayList<>();
             addendum.setCardDetail(shrMessage.getCardDetail());
             Identifier cardSerialIdentifier = new Identifier();
             cardSerialIdentifier.setId(serial);
             cardSerialIdentifier.setIdentifierType("CARD_SERIAL_NUMBER");
             cardSerialIdentifier.setAssigningFacility("");
             cardSerialIdentifier.setAssigningAuthority("CARD_REGISTRY");
-            addendum.getIdentifiers().add(cardSerialIdentifier);
+
+            if(shrMessage.getPatientIdentification() != null) {
+                if( !shrMessage.getPatientIdentification().getInternalpatientids().isEmpty()) {
+                    for (InternalPatientId internalPatientId :
+                            shrMessage.getPatientIdentification().getInternalpatientids()) {
+                        Identifier id = new Identifier();
+                        id.setAssigningAuthority(internalPatientId.getAssigningauthority());
+                        id.setAssigningFacility(internalPatientId.getAssigningfacility());
+                        id.setId(internalPatientId.getID());
+                        id.setIdentifierType(internalPatientId.getIdentifiertype());
+
+                        identifierList.add(id);
+                    }
+                }
+            }
+            identifierList.add(cardSerialIdentifier);
 
             List<InternalPatientId> internalPatientIds = shrMessage.getPatientIdentification().getInternalpatientids();
             List<Identifier> addendumIdentifiers = new ArrayList<>();
@@ -152,6 +168,7 @@ public class PSmartCard implements Card {
             TransmissionMessage transmitMessage = new TransmissionMessage(encryptedSHR, addendum);
             String transmitString = serializer.serialize(transmitMessage);
             Response response = new WriteResponse(transmitString, null);
+            Log.i("WRITE_RESPONSE", transmitString);
             return response;
         }
 
@@ -165,24 +182,32 @@ public class PSmartCard implements Card {
         List<String> stringArr = new ArrayList<>();
         switch (context) {
             case "INTERNAL_PATIENT_ID":
-                for(int i = 0; i < shr.getPatientIdentification().getInternalpatientids().size() ; i++){
-                    stringArr.add(serializer.serialize(shr.getPatientIdentification().getInternalpatientids().get(i)));
+                if(shr.getPatientIdentification().getInternalpatientids() !=null) {
+                    for (int i = 0; i < shr.getPatientIdentification().getInternalpatientids().size(); i++) {
+                        stringArr.add(serializer.serialize(shr.getPatientIdentification().getInternalpatientids().get(i)));
+                    }
                 }
                 break;
 
             case "HIV_TEST":
-                for(int i = 0; i < shr.getHivTests().size(); i++){
-                    stringArr.add(serializer.serialize(shr.getHivTests().get(i)));
+                if(shr.getHivTests() != null) {
+                    for (int i = 0; i < shr.getHivTests().size(); i++) {
+                        stringArr.add(serializer.serialize(shr.getHivTests().get(i)));
+                    }
                 }
                 break;
             case "IMMUNIZATION":
-                for(int i = 0; i < shr.getImmunizations().size(); i++){
-                    stringArr.add(serializer.serialize(shr.getImmunizations().get(i)));
+                if(shr.getImmunizations() != null) {
+                    for (int i = 0; i < shr.getImmunizations().size(); i++) {
+                        stringArr.add(serializer.serialize(shr.getImmunizations().get(i)));
+                    }
                 }
                 break;
             case "MOTHER_IDENTIFIER":
-                for(int i = 0; i < shr.getPatientIdentification().getMotherDetail().getMotherIdentifiers().size(); i++){
-                    stringArr.add(serializer.serialize(shr.getPatientIdentification().getMotherDetail().getMotherIdentifiers().get(i)));
+                if(shr.getPatientIdentification().getMotherDetail().getMotherIdentifiers() !=null) {
+                    for (int i = 0; i < shr.getPatientIdentification().getMotherDetail().getMotherIdentifiers().size(); i++) {
+                        stringArr.add(serializer.serialize(shr.getPatientIdentification().getMotherDetail().getMotherIdentifiers().get(i)));
+                    }
                 }
                 break;
             default:

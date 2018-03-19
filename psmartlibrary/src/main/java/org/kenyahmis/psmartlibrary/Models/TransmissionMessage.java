@@ -8,8 +8,9 @@ import org.kenyahmis.psmartlibrary.Models.Addendum.Addendum;
 
 public class TransmissionMessage {
 
-    private String SHR; // this is encrypted SHR
     private Addendum addendum;
+    private String SHR; // this is encrypted SHR
+
 
     public TransmissionMessage(String shr, Addendum addendum){
         setSHR(shr);

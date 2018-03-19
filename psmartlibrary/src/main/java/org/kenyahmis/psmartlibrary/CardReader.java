@@ -33,4 +33,6 @@ interface CardReader {
     byte[] WriteCard(String data);
 
     void powerOff();
+
+    String getCardSerial();
 }

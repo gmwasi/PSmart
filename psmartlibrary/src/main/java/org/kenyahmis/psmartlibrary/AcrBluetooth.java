@@ -1,5 +1,6 @@
 package org.kenyahmis.psmartlibrary;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.acs.bluetooth.Acr1255uj1Reader;
@@ -31,6 +32,7 @@ class AcrBluetooth implements CardReader {
     private byte[] responseApdu = null;
     private byte[] byteResponse = null;
     private boolean successfulResponse = false;
+    private String cardSerial = null;
 
     private String TAG = "BluetoothReader";
     private BluetoothReader bluetoothReader;
@@ -104,6 +106,10 @@ class AcrBluetooth implements CardReader {
             shrStr += ", \t\"NEXT_OF_KIN\": []";
             shrStr += ", \t\"VERSION\": \"1.0.0\"";
             shrStr += "\n}";
+
+            // card serial
+            fetchCardSerialFromCard();
+
             bluetoothReader.powerOffCard();
         } catch (Exception e) {
             e.printStackTrace();
@@ -928,10 +934,32 @@ class AcrBluetooth implements CardReader {
         }
         bluetoothReader.powerOnCard();
         formatCard();
+        fetchCardSerialFromCard();
     }
 
     @Override
     public void powerOff(){
         bluetoothReader.powerOffCard();
+    }
+
+    @Override
+    public String getCardSerial()
+    {
+        return cardSerial;
+    }
+
+    @Nullable
+    private byte[] fetchCardSerialFromCard(){
+        apduAvailable = false;
+        byte command[] = new byte[]{(byte)0x80, (byte)0x14, (byte)0x00, (byte)0x00, (byte)0x08};
+        ApduCommand apdu = new ApduCommand();
+        bluetoothReader.transmitApdu(command);
+        setApduResponse(apdu, "SerialNumber");
+        if(apduAvailable) {
+            byte[] response = apdu.getResponseApdu();
+            cardSerial =  Utils.byteArrayToString(response, response.length);
+            return response;
+        }
+        return null;
     }
 }

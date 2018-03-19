@@ -1,5 +1,6 @@
 package org.kenyahmis.psmartlibrary;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.acs.bluetooth.Acr1255uj1Reader;
@@ -12,6 +13,17 @@ import org.kenyahmis.psmartlibrary.Models.AcosCommand;
 import org.kenyahmis.psmartlibrary.Models.ApduCommand;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
 import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.Models.SHR.CardDetail;
+import org.kenyahmis.psmartlibrary.Models.SHR.ExternalPatientId;
+import org.kenyahmis.psmartlibrary.Models.SHR.FullName;
+import org.kenyahmis.psmartlibrary.Models.SHR.HIVTest;
+import org.kenyahmis.psmartlibrary.Models.SHR.Immunization;
+import org.kenyahmis.psmartlibrary.Models.SHR.InternalPatientId;
+import org.kenyahmis.psmartlibrary.Models.SHR.MotherDetail;
+import org.kenyahmis.psmartlibrary.Models.SHR.MotherIdentifier;
+import org.kenyahmis.psmartlibrary.Models.SHR.PatientAddress;
+import org.kenyahmis.psmartlibrary.Models.SHR.PatientIdentification;
+import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
 import java.util.ArrayList;
@@ -32,6 +44,7 @@ class AcrBluetooth implements CardReader {
     private byte[] responseApdu = null;
     private byte[] byteResponse = null;
     private boolean successfulResponse = false;
+    private String cardSerial = null;
 
     private String TAG = "BluetoothReader";
     private BluetoothReader bluetoothReader;
@@ -78,6 +91,69 @@ class AcrBluetooth implements CardReader {
 
     @Override
     public Response ReadCard() {
+        // read immunization
+        String cardDetails = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), (byte)0x00 );
+        String immunizationDetails = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
+        String hivTests = readArray(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
+        String patientExternalIdentifiers = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), (byte)0x00);
+        String patientInternalIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
+        String patientName = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
+        String patientAddress = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), (byte)0x00);
+        String mothersName = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte)0x00);
+        String motherIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
+
+
+        CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetails);
+        Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationDetails);
+        PatientAddress address = deserializer.deserialize(PatientAddress.class, patientAddress);
+        FullName motherName = deserializer.deserialize(FullName.class, mothersName);
+        ExternalPatientId externalPatientId = deserializer.deserialize(ExternalPatientId.class, patientExternalIdentifiers);
+
+        MotherIdentifier[] motherIdentifier = deserializer.deserialize(MotherIdentifier[].class, motherIdentifiers);
+        List<MotherIdentifier> motherIdentifierList = new ArrayList<>();
+        for (MotherIdentifier mId : motherIdentifier ) {
+            motherIdentifierList.add(mId);
+        }
+        InternalPatientId[] internalPatientId = deserializer.deserialize(InternalPatientId[].class, patientInternalIdentifiers);
+        List<InternalPatientId> InternalPatientIdList = new ArrayList<>();
+        for (InternalPatientId pId : internalPatientId ) {
+            InternalPatientIdList.add(pId);
+        }
+
+        MotherDetail motherDetail = new MotherDetail();
+        motherDetail.setMotherIdentifiers(motherIdentifierList);
+        motherDetail.setMothername(motherName);
+
+        PatientIdentification patientIdentification= deserializer.deserialize(PatientIdentification.class, patientName);
+        patientIdentification.setInternalpatientids(InternalPatientIdList);
+        patientIdentification.setExternalpatientid(externalPatientId);
+        patientIdentification.setPatientaddress(address);
+        patientIdentification.setMotherDetail(motherDetail);
+
+
+        List<Immunization> immunizations = new ArrayList<>();
+        for (Immunization immunization: immunizationArray ) {
+            immunizations.add(immunization);
+        }
+
+        HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTests);
+        List<HIVTest> hivTestsList = new ArrayList<>();
+        for (HIVTest hivTest : hivTestsArray ) {
+            hivTestsList.add(hivTest);
+        }
+
+        SHRMessage shrMessage = new SHRMessage();
+        shrMessage.setCardDetail(cardDetail);
+        shrMessage.setPatientIdentification(patientIdentification);
+        shrMessage.setImmunizations(immunizations);
+        shrMessage.setHivTests(hivTestsList);
+        shrMessage.setVersion("1.0.0");
+
+        return new ReadResponse(serializer.serialize(shrMessage), null);
+    }
+
+    public Response Readcards() {
+
         String shrStr = null;
         List<String> errors = new ArrayList<>();
         try {
@@ -100,11 +176,11 @@ class AcrBluetooth implements CardReader {
             shrStr += ", \t\"INTERNAL_PATIENT_ID\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME)) + "]";
             shrStr += ", \t\"PATIENT_ADDRESS\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), (byte)0x00);
             shrStr += ", \t\"MOTHER_DETAILS\": { \n\t\"MOTHER_NAME\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte)0x00);
-            shrStr += ", \t\"MOTHER_IDENTIFIER\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME)) + "]";
-            shrStr += "}\n}";
-            shrStr += ", \t\"NEXT_OF_KIN\": []";
-            shrStr += ", \t\"VERSION\": \"1.0.0\"";
             shrStr += "\n}";
+
+            // card serial
+            fetchCardSerialFromCard();
+
             bluetoothReader.powerOffCard();
         } catch (Exception e) {
             e.printStackTrace();
@@ -932,10 +1008,32 @@ class AcrBluetooth implements CardReader {
         }
         bluetoothReader.powerOnCard();
         formatCard();
+        fetchCardSerialFromCard();
     }
 
     @Override
     public void powerOff(){
         bluetoothReader.powerOffCard();
+    }
+
+    @Override
+    public String getCardSerial()
+    {
+        return cardSerial;
+    }
+
+    @Nullable
+    private byte[] fetchCardSerialFromCard(){
+        apduAvailable = false;
+        byte command[] = new byte[]{(byte)0x80, (byte)0x14, (byte)0x00, (byte)0x00, (byte)0x08};
+        ApduCommand apdu = new ApduCommand();
+        bluetoothReader.transmitApdu(command);
+        setApduResponse(apdu, "SerialNumber");
+        if(apduAvailable) {
+            byte[] response = apdu.getResponseApdu();
+            cardSerial =  Utils.byteArrayToString(response, response.length);
+            return response;
+        }
+        return null;
     }
 }

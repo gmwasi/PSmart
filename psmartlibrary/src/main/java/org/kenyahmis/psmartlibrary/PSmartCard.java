@@ -46,6 +46,20 @@ public class PSmartCard implements Card {
     public ReadResponse Read() {
 
             ReadResponse response = (ReadResponse) reader.ReadCard();
+            String cardSerial = reader.getCardSerial();
+
+            if(response.getErrors().isEmpty()) {
+                SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, response.getMessage());
+
+                InternalPatientId internalPatientId = new InternalPatientId();
+                internalPatientId.setID(cardSerial);
+                internalPatientId.setidentifiertype("CARD_SERIAL_NUMBER");
+                internalPatientId.setAssigningfacility("");
+                internalPatientId.setAssigningauthority("CARD_REGISTRY");
+                shrMessage.getPatientIdentification().getInternalpatientids().add(internalPatientId);
+
+                response = new ReadResponse(serializer.serialize(shrMessage), null);
+            }
             return response;
        }
 
@@ -102,11 +116,21 @@ public class PSmartCard implements Card {
             Log.i("demographics","ok");
             reader.writeArray(motherIdentifiers, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
             Log.i("motherIdentifiers","ok");
+
+            // get serial
+            String serial = reader.getCardSerial();
+
             reader.powerOff();
 
             // create addendum
             Addendum addendum = new Addendum();
             addendum.setCardDetail(shrMessage.getCardDetail());
+            Identifier cardSerialIdentifier = new Identifier();
+            cardSerialIdentifier.setId(serial);
+            cardSerialIdentifier.setIdentifierType("CARD_SERIAL_NUMBER");
+            cardSerialIdentifier.setAssigningFacility("");
+            cardSerialIdentifier.setAssigningAuthority("CARD_REGISTRY");
+            addendum.getIdentifiers().add(cardSerialIdentifier);
 
             List<InternalPatientId> internalPatientIds = shrMessage.getPatientIdentification().getInternalpatientids();
             List<Identifier> addendumIdentifiers = new ArrayList<>();

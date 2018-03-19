@@ -80,4 +80,11 @@ public class SHRMessage {
         this.cardDetail = cardDetail;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
 }

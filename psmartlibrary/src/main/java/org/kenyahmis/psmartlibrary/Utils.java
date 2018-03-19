@@ -432,4 +432,20 @@ public class Utils {
         return str;
     }
 
+    public static String serialByteArrayToString (byte[] data, int length)
+    {
+        String str = "";
+        int indx = 0;
+
+        for(byte byt : data)
+        {
+            str  += (char)(byt & 0xFF);
+            indx++;
+            if (indx == length)
+                break;
+        }
+
+        return str;
+    }
+
 }

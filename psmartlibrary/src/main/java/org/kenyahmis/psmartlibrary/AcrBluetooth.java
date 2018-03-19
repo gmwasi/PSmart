@@ -14,6 +14,7 @@ import org.kenyahmis.psmartlibrary.Models.ReadResponse;
 import org.kenyahmis.psmartlibrary.Models.Response;
 import org.kenyahmis.psmartlibrary.userFiles.UserFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ class AcrBluetooth implements CardReader {
     @Override
     public Response ReadCard() {
         String shrStr = null;
-        List<String> errors = null;
+        List<String> errors = new ArrayList<>();
         try {
             authenticated = false;
             authenticate();
@@ -115,16 +116,19 @@ class AcrBluetooth implements CardReader {
     @Override
     public String readArray(UserFile userFile) {
         StringBuilder builder = new StringBuilder();
-        String data = "";
         for(int i=0; i<255;i++) {
             String readData = readUserFile(userFile, getByte(i));
             if(readData.startsWith("ÿÿÿ")){
-                data = builder.toString().substring(0, builder.toString().length() - 1);
                 break;
             }
             builder.append(readData).append(",");
         }
-        return data;
+        if(builder.length() > 0) {
+            builder.toString().substring(0, builder.toString().length() - 1);
+        } else {
+            builder.append("");
+        }
+        return builder.toString();
     }
 
     private String readUserFile(UserFile userFile, byte recordNumber) {

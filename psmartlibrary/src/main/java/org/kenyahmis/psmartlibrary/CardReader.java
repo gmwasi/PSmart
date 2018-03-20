@@ -24,7 +24,9 @@ interface CardReader {
 
     void writeArray(List<String> elements, UserFile userFile);
 
-    void clean();
+    void hardClean();
+
+    void softClean();
 
     // Params:
     //Data to be written on card as byte array

@@ -58,6 +58,9 @@ public class MotherIdentifier {
 
     @Override
     public boolean equals(Object obj) {
+        if(obj == null){
+            return false;
+        }
         if (obj instanceof MotherIdentifier) {
             return ((MotherIdentifier) obj).identifiertype.equals(identifiertype);
         }

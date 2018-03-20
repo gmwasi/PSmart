@@ -59,7 +59,7 @@ public class InternalPatientId {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof InternalPatientId) {
-            return ((InternalPatientId) obj).id.equals(identifiertype);
+            return ((InternalPatientId) obj).identifiertype.equals(identifiertype);
         }
         return false;
     }

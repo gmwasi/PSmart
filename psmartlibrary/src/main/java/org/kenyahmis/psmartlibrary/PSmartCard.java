@@ -66,7 +66,7 @@ public class PSmartCard implements Card {
             internalPatientId.setAssigningauthority("CARD_REGISTRY");
             shrMessage.getPatientIdentification().getInternalpatientids().add(internalPatientId);
             serializedSHR = serializer.serialize(shrMessage);
-            response = new ReadResponse(serializedSHR, new ArrayList<String>());
+            //response = new ReadResponse(serializedSHR, new ArrayList<String>());
 
             PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
             try {
@@ -92,24 +92,27 @@ public class PSmartCard implements Card {
             PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
             try {
                 readFromFile = file.read();
+                Log.i("File", readFromFile);
                 if(readFromFile == "")
                 {
                     readFromFile = Read().getMessage();
                     isRead =true;
+                    Log.i("File", "Read from card");
                 }
             }
             catch (Exception ex){
                 readFromFile = Read().getMessage();
                 isRead =true;
+                Log.i("File", "Read from card");
             }
-
+            Log.i("SHR from card", readFromFile);
             shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
 
             Diff diff = new Diff(shrFromCard, incomingSHR);
             SHRMessage finalSHR = diff.getFinalShr();
 
 
-            if (isRead) {
+            if (!isRead) {
                 reader.hardClean();
             } else {
                 reader.softClean();
@@ -126,7 +129,9 @@ public class PSmartCard implements Card {
             {
                 if(finalSHR.getPatientIdentification().getInternalpatientids() != null)
                 {
-                    finalSHR.getPatientIdentification().getInternalpatientids().add(cardserialInternalId);
+                    List<InternalPatientId> internalPatientIds = finalSHR.getPatientIdentification().getInternalpatientids();
+                    internalPatientIds.add(cardserialInternalId);
+                    finalSHR.getPatientIdentification().setInternalpatientids(internalPatientIds);
                 }
             }
 

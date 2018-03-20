@@ -93,6 +93,9 @@ public class HIVTest {
 
     @Override
     public boolean equals(Object obj) {
+        if(obj == null){
+            return false;
+        }
         if (obj instanceof HIVTest) {
             return ((HIVTest) obj).date.equals(date) && ((HIVTest) obj).facility.equals(facility) && ((HIVTest) obj).type.equals(type);
         }

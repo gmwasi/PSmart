@@ -86,29 +86,35 @@ public class PSmartCard implements Card {
 
         try {
             SHRMessage incomingSHR = deserializer.deserialize(SHRMessage.class, shr);
+            boolean isRead = false;
+            String readFromFile = "";
+            SHRMessage shrFromCard = null;
+            PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
+            try {
+                readFromFile = file.read();
+                if(readFromFile == "")
+                {
+                    readFromFile = Read().getMessage();
+                    isRead =true;
+                }
+            }
+            catch (Exception ex){
+                readFromFile = Read().getMessage();
+                isRead =true;
+            }
 
-//            String readFromFile = "";
-//            SHRMessage shrFromCard = null;
-//            PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
-//            try {
-//                readFromFile = file.read();
-//                if(readFromFile == "")
-//                {
-//                    readFromFile = Read().getMessage();
-//                }
-//            }
-//            catch (Exception ex){
-//                readFromFile = Read().getMessage();
-//            }
-//
-//            shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
-//
-//            // TODO: diff logic here
-//
-//            //-----
+            shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
+
+            Diff diff = new Diff(shrFromCard, incomingSHR);
+            SHRMessage finalSHR = diff.getFinalShr();
 
 
-            reader.hardClean();
+            if (isRead) {
+                reader.hardClean();
+            } else {
+                reader.softClean();
+            }
+
             String serial = reader.getCardSerial();
             InternalPatientId cardserialInternalId = new InternalPatientId();
             cardserialInternalId.setID(serial);
@@ -116,35 +122,35 @@ public class PSmartCard implements Card {
             cardserialInternalId.setAssigningfacility("HTS_APP");
             cardserialInternalId.setidentifiertype("CARD_SERIAL_NUMBER");
 
-            if(incomingSHR.getPatientIdentification() != null)
+            if(finalSHR.getPatientIdentification() != null)
             {
-                if(incomingSHR.getPatientIdentification().getInternalpatientids() != null)
+                if(finalSHR.getPatientIdentification().getInternalpatientids() != null)
                 {
-                    incomingSHR.getPatientIdentification().getInternalpatientids().add(cardserialInternalId);
+                    finalSHR.getPatientIdentification().getInternalpatientids().add(cardserialInternalId);
                 }
             }
 
             List<String> demographics = new ArrayList<>();
             StringBuilder otherDemographics = new StringBuilder();
             otherDemographics
-                    .append("\"DATE_OF_BIRTH\": \"").append(incomingSHR.getPatientIdentification().getDateofbirth()).append("\"")
-                    .append(", \"DATE_OF_BIRTH_PRECISION\": \"").append(incomingSHR.getPatientIdentification().getDateofbirthprecision()).append("\"")
-                    .append(", \"SEX\": \"").append(incomingSHR.getPatientIdentification().getSex()).append("\"")
-                    .append(", \"DEATH_DATE\": \"").append(incomingSHR.getPatientIdentification().getDeathdate()).append("\"")
-                    .append(", \"DEATH_INDICATOR\": \"").append(incomingSHR.getPatientIdentification().getDeathindicator()).append("\"")
-                    .append(", \"PHONE_NUMBER\": \"").append(incomingSHR.getPatientIdentification().getPhonenumber()).append("\"")
-                    .append(", \"MARITAL_STATUS\": \"").append(incomingSHR.getPatientIdentification().getMaritalstatus()).append("\"");
-            String patientName = serializer.serialize(incomingSHR.getPatientIdentification().getPatientname());
+                    .append("\"DATE_OF_BIRTH\": \"").append(finalSHR.getPatientIdentification().getDateofbirth()).append("\"")
+                    .append(", \"DATE_OF_BIRTH_PRECISION\": \"").append(finalSHR.getPatientIdentification().getDateofbirthprecision()).append("\"")
+                    .append(", \"SEX\": \"").append(finalSHR.getPatientIdentification().getSex()).append("\"")
+                    .append(", \"DEATH_DATE\": \"").append(finalSHR.getPatientIdentification().getDeathdate()).append("\"")
+                    .append(", \"DEATH_INDICATOR\": \"").append(finalSHR.getPatientIdentification().getDeathindicator()).append("\"")
+                    .append(", \"PHONE_NUMBER\": \"").append(finalSHR.getPatientIdentification().getPhonenumber()).append("\"")
+                    .append(", \"MARITAL_STATUS\": \"").append(finalSHR.getPatientIdentification().getMaritalstatus()).append("\"");
+            String patientName = serializer.serialize(finalSHR.getPatientIdentification().getPatientname());
             demographics.add(patientName);
             demographics.add(otherDemographics.toString());
-            String patientExternalIdentifiers = serializer.serialize(incomingSHR.getPatientIdentification().getExternalpatientid());
-            String cardDetails = serializer.serialize(incomingSHR.getCardDetail());
-            String motherDetails = serializer.serialize(incomingSHR.getPatientIdentification().getMotherDetail().getMotherName());
-            List<String> immunizationDetails = getStringArr(incomingSHR, "IMMUNIZATION");
-            List<String> hivTests = getStringArr(incomingSHR, "HIV_TEST");
-            List<String> internalIdentifiers = getStringArr(incomingSHR, "INTERNAL_PATIENT_ID");
-            List<String> motherIdentifiers = getStringArr(incomingSHR, "MOTHER_IDENTIFIER");
-            String addressDetails = serializer.serialize(incomingSHR.getPatientIdentification().getPatientaddress());
+            String patientExternalIdentifiers = serializer.serialize(finalSHR.getPatientIdentification().getExternalpatientid());
+            String cardDetails = serializer.serialize(finalSHR.getCardDetail());
+            String motherDetails = serializer.serialize(finalSHR.getPatientIdentification().getMotherDetail().getMotherName());
+            List<String> immunizationDetails = getStringArr(finalSHR, "IMMUNIZATION");
+            List<String> hivTests = getStringArr(finalSHR, "HIV_TEST");
+            List<String> internalIdentifiers = getStringArr(finalSHR, "INTERNAL_PATIENT_ID");
+            List<String> motherIdentifiers = getStringArr(finalSHR, "MOTHER_IDENTIFIER");
+            String addressDetails = serializer.serialize(finalSHR.getPatientIdentification().getPatientaddress());
 
 
             //write user files
@@ -175,17 +181,17 @@ public class PSmartCard implements Card {
             // create addendum
             Addendum addendum = new Addendum();
             List<Identifier> identifierList = new ArrayList<>();
-            addendum.setCardDetail(incomingSHR.getCardDetail());
+            addendum.setCardDetail(finalSHR.getCardDetail());
             Identifier cardSerialIdentifier = new Identifier();
             cardSerialIdentifier.setId(serial);
             cardSerialIdentifier.setIdentifierType("CARD_SERIAL_NUMBER");
             cardSerialIdentifier.setAssigningFacility("");
             cardSerialIdentifier.setAssigningAuthority("CARD_REGISTRY");
 
-            if(incomingSHR.getPatientIdentification() != null) {
-                if( !incomingSHR.getPatientIdentification().getInternalpatientids().isEmpty()) {
+            if(finalSHR.getPatientIdentification() != null) {
+                if( !finalSHR.getPatientIdentification().getInternalpatientids().isEmpty()) {
                     for (InternalPatientId internalPatientId :
-                            incomingSHR.getPatientIdentification().getInternalpatientids()) {
+                            finalSHR.getPatientIdentification().getInternalpatientids()) {
                         Identifier id = new Identifier();
                         id.setAssigningAuthority(internalPatientId.getAssigningauthority());
                         id.setAssigningFacility(internalPatientId.getAssigningfacility());
@@ -198,7 +204,7 @@ public class PSmartCard implements Card {
             }
             identifierList.add(cardSerialIdentifier);
 
-            List<InternalPatientId> internalPatientIds = incomingSHR.getPatientIdentification().getInternalpatientids();
+            List<InternalPatientId> internalPatientIds = finalSHR.getPatientIdentification().getInternalpatientids();
             List<Identifier> addendumIdentifiers = new ArrayList<>();
 
             // loop through the internal identifiers to construct Addendum Identifier
@@ -219,6 +225,8 @@ public class PSmartCard implements Card {
             String transmitString = serializer.serialize(transmitMessage);
             Response response = new WriteResponse(transmitString, null);
             Log.i("WRITE_RESPONSE", transmitString);
+
+            file.write("");
             return response;
         }
 

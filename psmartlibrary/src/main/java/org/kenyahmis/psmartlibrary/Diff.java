@@ -25,7 +25,6 @@ public class Diff {
     InternalPatientId[] _htsInternalPatientIdArray;
     MotherIdentifier[] _fileMotherIdentifierArray;
     MotherIdentifier[] _htsMotherIdentifierArray;
-    PatientIdentification _filePatientIdentification;
     PatientIdentification _htsPatientIdentification;
 
 
@@ -38,7 +37,6 @@ public class Diff {
         _htsMotherIdentifierArray = (MotherIdentifier[]) fromHts.getPatientIdentification().getMotherDetail().getMotherIdentifiers().toArray();
         _fileInternalPatientIdArray = (InternalPatientId[]) fromFile.getPatientIdentification().getInternalpatientids().toArray();
         _htsInternalPatientIdArray = (InternalPatientId[]) fromHts.getPatientIdentification().getInternalpatientids().toArray();
-        _filePatientIdentification = fromFile.getPatientIdentification();
         _htsPatientIdentification = fromHts.getPatientIdentification();
     }
 
@@ -80,20 +78,19 @@ public class Diff {
 
 
 
-    private PatientIdentification getFinalPatientIdentification(PatientIdentification filePatientIdentification, PatientIdentification htsPatientIdentification) {
-        PatientIdentification patientIdentification = _fromHts.getPatientIdentification();
-        MotherDetail motherDetail = patientIdentification.getMotherDetail();
+    private PatientIdentification getFinalPatientIdentification() {
+        MotherDetail motherDetail = _htsPatientIdentification.getMotherDetail();
         MotherIdentifier[] motherDetails = getFinalMotherIdentifier(_fileMotherIdentifierArray, _htsMotherIdentifierArray).toArray(new MotherIdentifier[0]);
         InternalPatientId[] internalPatientIds = getFinalInternalPatientId(_fileInternalPatientIdArray, _htsInternalPatientIdArray).toArray(new InternalPatientId[0]);
         motherDetail.setMotherIdentifiers(Arrays.asList(motherDetails));
-        patientIdentification.setMotherDetail(motherDetail);
-        patientIdentification.setInternalpatientids(Arrays.asList(internalPatientIds));
+        _htsPatientIdentification.setMotherDetail(motherDetail);
+        _htsPatientIdentification.setInternalpatientids(Arrays.asList(internalPatientIds));
         return null;
     }
 
     public SHRMessage getFinalShr(){
         SHRMessage finalShr = _fromFile;
-        PatientIdentification patientIdentification = getFinalPatientIdentification(_fromFile.getPatientIdentification(), _fromHts.getPatientIdentification());
+        PatientIdentification patientIdentification = getFinalPatientIdentification();
         HIVTest[] finalHivTest = getFinalHIVTests(_fileHivTestArray, _htsHivTestArray).toArray(new HIVTest[0]);
         finalShr.setPatientIdentification(patientIdentification);
         finalShr.setHivTests(Arrays.asList(finalHivTest));

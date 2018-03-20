@@ -464,7 +464,8 @@ public class Utils {
     public static String convertSerialByteToString(byte[] bytes){
         StringBuilder builder = new StringBuilder();
         for (byte byt : bytes) {
-            builder.append(iterative(toHexString(new byte[]{byt})));
+            //builder.append(iterative(toHexString(new byte[]{byt})));
+            builder.append((Integer.parseInt(toHexString(new byte[]{byt}).trim(), 16)));
         }
         return builder.toString();
     }

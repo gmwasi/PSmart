@@ -87,28 +87,28 @@ public class PSmartCard implements Card {
         try {
             SHRMessage incomingSHR = deserializer.deserialize(SHRMessage.class, shr);
 
-            String readFromFile = "";
-            SHRMessage shrFromCard = null;
-            PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
-            try {
-                readFromFile = file.read();
-                if(readFromFile == "")
-                {
-                    readFromFile = Read().getMessage();
-                }
-            }
-            catch (Exception ex){
-                readFromFile = Read().getMessage();
-            }
+//            String readFromFile = "";
+//            SHRMessage shrFromCard = null;
+//            PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
+//            try {
+//                readFromFile = file.read();
+//                if(readFromFile == "")
+//                {
+//                    readFromFile = Read().getMessage();
+//                }
+//            }
+//            catch (Exception ex){
+//                readFromFile = Read().getMessage();
+//            }
+//
+//            shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
+//
+//            // TODO: diff logic here
+//
+//            //-----
 
-            shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
 
-            // TODO: diff logic here
-
-            //-----
-
-
-            reader.softClean();
+            reader.hardClean();
             String serial = reader.getCardSerial();
             InternalPatientId cardserialInternalId = new InternalPatientId();
             cardserialInternalId.setID(serial);

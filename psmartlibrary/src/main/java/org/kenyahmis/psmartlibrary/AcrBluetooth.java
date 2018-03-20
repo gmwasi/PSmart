@@ -1,5 +1,6 @@
 package org.kenyahmis.psmartlibrary;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -9,6 +10,8 @@ import com.acs.bluetooth.BluetoothReader;
 
 import org.kenyahmis.psmartlibrary.AcosCard.OptionRegister;
 import org.kenyahmis.psmartlibrary.AcosCard.SecurityOptionRegister;
+import org.kenyahmis.psmartlibrary.DAL.FileNames;
+import org.kenyahmis.psmartlibrary.DAL.PSmartFile;
 import org.kenyahmis.psmartlibrary.Models.AcosCommand;
 import org.kenyahmis.psmartlibrary.Models.ApduCommand;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
@@ -50,6 +53,7 @@ class AcrBluetooth implements CardReader {
     private BluetoothReader bluetoothReader;
     private Serializer serializer;
     private Deserializer deserializer;
+    private Context context;
 
     public enum CODE_TYPE
     {
@@ -80,9 +84,10 @@ class AcrBluetooth implements CardReader {
         INTERNAL_FILE(int id){this._id = id;}
     }
 
-    AcrBluetooth(BluetoothReader reader){
+    AcrBluetooth(BluetoothReader reader, Context context){
         deserializer = new Deserializer();
         serializer = new Serializer();
+        this.context = context;
         if(reader != null) bluetoothReader = reader;
         else throw new NullPointerException();
 
@@ -94,6 +99,7 @@ class AcrBluetooth implements CardReader {
 
         SHRMessage shrMessage = new SHRMessage();
         List<String> errors = new ArrayList<>();
+        String serializedSHRString = "";
         // read immunization
         try {
             authenticated = false;
@@ -113,7 +119,7 @@ class AcrBluetooth implements CardReader {
             String mothersName = readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte) 0x00);
             String motherIdentifiers = readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
 
-            fetchCardSerialFromCard();
+            //fetchCardSerialFromCard();
             bluetoothReader.powerOffCard();
 
             CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetails);
@@ -202,7 +208,8 @@ class AcrBluetooth implements CardReader {
             shrStr += "\n}";
 
             // card serial
-            fetchCardSerialFromCard();
+            //fetchCardSerialFromCard();
+            queryCardSerial();
 
             bluetoothReader.powerOffCard();
         } catch (Exception e) {
@@ -774,7 +781,7 @@ class AcrBluetooth implements CardReader {
         byte[] apduCommand = apdu.createCommand();
         bluetoothReader.transmitApdu(apduCommand);
         setApduResponse(apdu, "clearCard");
-        if (apdu.getResponseApdu()[0] != (byte)0x90)
+        if (apdu.getResponseApdu()!=null && apdu.getResponseApdu()[0] != (byte)0x90)
             throw new Exception (getErrorMessage(apdu.getResponseApdu()));
     }
 
@@ -1026,14 +1033,22 @@ class AcrBluetooth implements CardReader {
         }
     }
 
-    public void clean(){
+    @Override
+    public void hardClean(){
         authenticate();
         if(!checkIfAuthenticated()){
 
         }
         bluetoothReader.powerOnCard();
         formatCard();
-        fetchCardSerialFromCard();
+        //fetchCardSerialFromCard();
+        queryCardSerial();
+    }
+
+    public void softClean(){
+        formatCard();
+        //fetchCardSerialFromCard();
+        queryCardSerial();
     }
 
     @Override
@@ -1060,5 +1075,20 @@ class AcrBluetooth implements CardReader {
             return response;
         }
         return null;
+    }
+
+    @Nullable
+    private byte[] queryCardSerial(){
+        ApduCommand apduCommand = new ApduCommand();
+        apduCommand.setCommand((byte)0x80, (byte)0x14, (byte)0x00, (byte)0x00, (byte)0x08);
+        apduAvailable = false;
+        byte[] command = apduCommand.createCommand();
+        bluetoothReader.transmitApdu(command);
+        setApduResponse((apduCommand), "SerialNumber");
+        byte[] res = apduCommand.getResponseApdu();
+        byte[] trimmedRes = new byte[8];
+        System.arraycopy(res, 0, trimmedRes, 0, res.length-2);
+        cardSerial = Utils.convertSerialByteToString(trimmedRes);
+        return res;
     }
 }

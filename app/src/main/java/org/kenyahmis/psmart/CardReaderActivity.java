@@ -186,7 +186,7 @@ public class CardReaderActivity extends AppCompatActivity {
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
 
-            PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
+            PSmartCard pSmartCard = new PSmartCard(bluetoothReader, this.getApplicationContext());
             try {
                 Response response = pSmartCard.Read();
                 Log.d("Response" , response.getMessage());
@@ -205,7 +205,7 @@ public class CardReaderActivity extends AppCompatActivity {
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
             try {
-                PSmartCard pSmartCard = new PSmartCard(bluetoothReader);
+                PSmartCard pSmartCard = new PSmartCard(bluetoothReader, this.getApplicationContext());
                 return pSmartCard.Write(shrmessage);
             }catch (Exception e){
                 return  null;

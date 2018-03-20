@@ -35,4 +35,5 @@ dependencies {
     api files('libs/acsaj-1.0.0.jar')
     api files('libs/acsbt-1.0.0preview9.jar')
     api files('libs/commons-codec-1.11.jar')
+    implementation files('libs/commons-lang3-3.71.jar')
 }

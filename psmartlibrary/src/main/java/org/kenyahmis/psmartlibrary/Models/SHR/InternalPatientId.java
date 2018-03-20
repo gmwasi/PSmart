@@ -56,4 +56,19 @@ public class InternalPatientId {
         this.assigningfacility = assigningfacility;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof InternalPatientId) {
+            return ((InternalPatientId) obj).id.equals(identifiertype);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + (this.identifiertype).hashCode();
+        return hash;
+    }
+
 }

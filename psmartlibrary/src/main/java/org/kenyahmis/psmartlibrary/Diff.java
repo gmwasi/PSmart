@@ -80,25 +80,21 @@ public class Diff {
 
     private PatientIdentification getFinalPatientIdentification() {
         PatientIdentification patientIdentification = _htsPatientIdentification;
-        MotherIdentifier[] motherIdentifiers = getFinalMotherIdentifier(_fileMotherIdentifierArray, _htsMotherIdentifierArray).toArray(new MotherIdentifier[0]);
-        InternalPatientId[] internalPatientIds = getFinalInternalPatientId(_fileInternalPatientIdArray, _htsInternalPatientIdArray).toArray(new InternalPatientId[0]);
+        List<MotherIdentifier> motherIdentifiers = getFinalMotherIdentifier(_fileMotherIdentifierArray, _htsMotherIdentifierArray);
+        List<InternalPatientId> internalPatientIds = getFinalInternalPatientId(_fileInternalPatientIdArray, _htsInternalPatientIdArray);
         MotherDetail motherDetail = _htsPatientIdentification.getMotherDetail();
-        motherDetail.setMotherIdentifiers(Arrays.asList(motherIdentifiers));
+        motherDetail.setMotherIdentifiers(motherIdentifiers);
         patientIdentification.setMotherDetail(motherDetail);
-        ArrayList internalPatientArrayList = new ArrayList<>();
-        internalPatientArrayList.add(Arrays.asList(internalPatientIds));
-        patientIdentification.setInternalpatientids(internalPatientArrayList);
+        patientIdentification.setInternalpatientids(internalPatientIds);
         return patientIdentification;
     }
 
     public SHRMessage getFinalShr(){
         SHRMessage finalShr = _fromFile;
         PatientIdentification patientIdentification = getFinalPatientIdentification();
-        HIVTest[] finalHivTest = getFinalHIVTests(_fileHivTestArray, _htsHivTestArray).toArray(new HIVTest[0]);
+        List<HIVTest> finalHivTest = getFinalHIVTests(_fileHivTestArray, _htsHivTestArray);
         finalShr.setPatientIdentification(patientIdentification);
-        ArrayList finalHivTestlist = new ArrayList<>();
-        finalHivTestlist.add(Arrays.asList(finalHivTest));
-        finalShr.setHivTests(finalHivTestlist);
+        finalShr.setHivTests(finalHivTest);
         return finalShr;
     }
     

@@ -195,8 +195,7 @@ public class PSmartCard implements Card {
 
             if(finalSHR.getPatientIdentification() != null) {
                 if( !finalSHR.getPatientIdentification().getInternalpatientids().isEmpty()) {
-                    for (InternalPatientId internalPatientId :
-                            finalSHR.getPatientIdentification().getInternalpatientids()) {
+                    for (InternalPatientId internalPatientId : finalSHR.getPatientIdentification().getInternalpatientids()) {
                         Identifier id = new Identifier();
                         id.setAssigningAuthority(internalPatientId.getAssigningauthority());
                         id.setAssigningFacility(internalPatientId.getAssigningfacility());

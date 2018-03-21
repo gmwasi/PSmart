@@ -32,7 +32,12 @@ class Acr3x implements CardReader{
     }
 
     @Override
-    public void clean() {
+    public void hardClean() {
+
+    }
+
+    @Override
+    public void softClean() {
 
     }
 

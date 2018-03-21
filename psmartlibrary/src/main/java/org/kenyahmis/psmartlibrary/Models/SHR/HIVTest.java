@@ -6,6 +6,9 @@ package org.kenyahmis.psmartlibrary.Models.SHR;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.DiffBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class HIVTest {
 
@@ -79,6 +82,39 @@ public class HIVTest {
 
     public void setProviderdetails(ProviderDetail providerdetails) {
         this.providerdetails = providerdetails;
+    }
+
+    public static boolean compare(HIVTest hivTest, HIVTest hivTest1) {
+        if(hivTest.date.equals(hivTest1.date) && hivTest.facility.equals(hivTest1.facility) && hivTest.type.equals(hivTest1.type)){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null){
+            return false;
+        }
+        if (obj instanceof HIVTest) {
+            return ((HIVTest) obj).date.equals(date) && ((HIVTest) obj).facility.equals(facility) && ((HIVTest) obj).type.equals(type);
+        }
+        return false;
+    }
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + (this.type + this.facility + this.date).hashCode();
+        return hash;
+    }
+
+    //@Override
+    public DiffResult diff(HIVTest hivTest) {
+        return new DiffBuilder(this, hivTest, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("HIV Test Date: ", this.date, hivTest.date)
+                .append("HIV Test Facility: ", this.facility, hivTest.facility)
+                .append("HIV Test Type: ", this.type, hivTest.type)
+                .build();
     }
 
 }

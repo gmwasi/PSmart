@@ -56,4 +56,22 @@ public class MotherIdentifier {
         this.assigningfacility = assigningfacility;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null){
+            return false;
+        }
+        if (obj instanceof MotherIdentifier) {
+            return ((MotherIdentifier) obj).identifiertype.equals(identifiertype);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + (this.identifiertype).hashCode();
+        return hash;
+    }
+
 }

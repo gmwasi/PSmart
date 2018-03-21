@@ -19,10 +19,10 @@ public class SHRMessage {
     @SerializedName("NEXT_OF_KIN")
     @Expose
     private List<NextOfKin> nextofkin = null;
-    @SerializedName("HIV_TESTS")
+    @SerializedName("HIV_TEST")
     @Expose
     private List<HIVTest> hivTests = null;
-    @SerializedName("IMMUNIZATIONS")
+    @SerializedName("IMMUNIZATION")
     @Expose
     private List<Immunization> immunizations = null;
     @SerializedName("MERGE_PATIENT_INFORMATION")

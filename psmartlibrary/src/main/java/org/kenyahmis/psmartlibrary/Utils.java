@@ -432,4 +432,56 @@ public class Utils {
         return str;
     }
 
+    public static String serialByteArrayToString (byte[] data, int length)
+    {
+        String str = "";
+        int indx = 0;
+
+        for(byte byt : data)
+        {
+            str  += (char)(byt & 0xFF);
+            indx++;
+            if (indx == length)
+                break;
+        }
+
+        return str;
+    }
+
+    public static int byteToInt(byte[] data)
+    {
+        byte[] holder = new byte[4];
+
+        if (data == null)
+            return -1;
+
+        // Make sure that the array size is 4
+        System.arraycopy(data, 0, holder, 4 - data.length, data.length);
+
+        return (((holder[0] & 0xFF) << 24) + ((holder[1] & 0xFF) << 16) + ((holder[2] & 0xFF) << 8) + (holder[3] & 0xFF));
+    }
+
+    public static String convertSerialByteToString(byte[] bytes){
+        StringBuilder builder = new StringBuilder();
+        for (byte byt : bytes) {
+            //builder.append(iterative(toHexString(new byte[]{byt})));
+            builder.append((Integer.parseInt(toHexString(new byte[]{byt}).trim(), 16)));
+        }
+        return builder.toString();
+    }
+
+    private static int iterative(String hexNumber) {
+        int power = 0;
+        int decimal = 0;
+        hexNumber = hexNumber.trim().toUpperCase();
+        int length = hexNumber.length();
+        String hexCode = "0123456789ABCDEF";
+        for (int index = 0; index < length; index++) {
+            char digit = hexNumber.charAt(length - index - 1);
+            decimal = decimal + hexCode.indexOf(digit) * (int) Math.pow(16, power++);
+        }
+        int val = decimal;
+        return val;
+    }
+
 }

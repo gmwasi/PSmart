@@ -109,7 +109,12 @@ public class PSmartCard implements Card {
             shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
 
             Diff diff = new Diff(shrFromCard, incomingSHR);
-            SHRMessage finalSHR = diff.getFinalShr();
+            SHRMessage finalSHR;
+            if (shrFromCard.getCardDetail().getLastupdated()!= null) {
+                finalSHR = diff.getFinalShr();
+            } else {
+                finalSHR = incomingSHR;
+            }
 
 
             if (!isRead) {

@@ -59,12 +59,12 @@ public class PSmartCard implements Card {
             String serializedSHR = "";
             SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, response.getMessage());
 
-            InternalPatientId internalPatientId = new InternalPatientId();
-            internalPatientId.setID(cardSerial);
-            internalPatientId.setidentifiertype("CARD_SERIAL_NUMBER");
-            internalPatientId.setAssigningfacility("");
-            internalPatientId.setAssigningauthority("CARD_REGISTRY");
-            shrMessage.getPatientIdentification().getInternalpatientids().add(internalPatientId);
+//            InternalPatientId internalPatientId = new InternalPatientId();
+//            internalPatientId.setID(cardSerial);
+//            internalPatientId.setidentifiertype("CARD_SERIAL_NUMBER");
+//            internalPatientId.setAssigningfacility("");
+//            internalPatientId.setAssigningauthority("CARD_REGISTRY");
+//            shrMessage.getPatientIdentification().getInternalpatientids().add(internalPatientId);
             serializedSHR = serializer.serialize(shrMessage);
             //response = new ReadResponse(serializedSHR, new ArrayList<String>());
 
@@ -129,6 +129,8 @@ public class PSmartCard implements Card {
             }
 
             else {
+
+                finalSHR = removeAllCardSerialIdentifiers(finalSHR);
                 List<InternalPatientId> existingPatientIds = finalSHR.getPatientIdentification().getInternalpatientids();
                 InternalPatientId cardserialInternalId = new InternalPatientId();
                 cardserialInternalId.setID(serial);
@@ -287,6 +289,7 @@ public class PSmartCard implements Card {
         if(shr.getPatientIdentification() != null) {
             List<InternalPatientId> existingPatientIds = shr.getPatientIdentification().getInternalpatientids();
             if (existingPatientIds != null) {
+                List<InternalPatientId> cardSerialIdentifiers = new ArrayList<>();
                 InternalPatientId cardserialnumberId = null;
                 for (InternalPatientId ipi : existingPatientIds) {
                     if (ipi.getIdentifiertype() == "CARD_SERIAL_NUMBER") {
@@ -295,10 +298,17 @@ public class PSmartCard implements Card {
                         cardserialnumberId.setAssigningfacility(ipi.getAssigningfacility());
                         cardserialnumberId.setID(ipi.getID());
                         cardserialnumberId.setAssigningauthority(ipi.getAssigningauthority());
-                        break;
+                        cardSerialIdentifiers.add(cardserialnumberId);
                     }
                 }
 
+                if(cardSerialIdentifiers.size()>1){
+                    return null;
+                }
+
+                else if(cardSerialIdentifiers.size() == 1){
+                    return cardserialnumberId;
+                }
                 return cardserialnumberId;
             }
         }
@@ -311,6 +321,25 @@ public class PSmartCard implements Card {
             return serialFromCard.trim().equals(serialFromShr.trim());
         }
         return false;
+    }
+
+    private SHRMessage removeAllCardSerialIdentifiers(SHRMessage shrMessage){
+        if(shrMessage.getPatientIdentification() != null) {
+            List<InternalPatientId> existingPatientIds = shrMessage.getPatientIdentification().getInternalpatientids();
+            if (existingPatientIds != null) {
+                List<InternalPatientId> cardSerialIdentifiers = new ArrayList<>();
+                for (InternalPatientId id : existingPatientIds ) {
+                    if (id.getIdentifiertype() == "CARD_SERIAL_NUMBER") {
+                        cardSerialIdentifiers.add(id);
+                    }
+                }
+
+                existingPatientIds.removeAll(cardSerialIdentifiers);
+                shrMessage.getPatientIdentification().setInternalpatientids(existingPatientIds);
+
+            }
+        }
+        return shrMessage;
     }
 
     public ReadResponse MockRead() {

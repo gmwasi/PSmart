@@ -97,14 +97,14 @@ public class HIVTest {
             return false;
         }
         if (obj instanceof HIVTest) {
-            return ((HIVTest) obj).date.equals(date) && ((HIVTest) obj).facility.equals(facility) && ((HIVTest) obj).type.equals(type);
+            return ((HIVTest) obj).date.equals(date) && ((HIVTest) obj).facility.equals(facility) && ((HIVTest) obj).type.equals(type)  && ((HIVTest) obj).result.equals(result);
         }
         return false;
     }
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 29 * hash + (this.type + this.facility + this.date).hashCode();
+        hash = 29 * hash + (this.type + this.facility + this.date + this.result).hashCode();
         return hash;
     }
 

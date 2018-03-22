@@ -129,6 +129,7 @@ public class BluetoothReaderInitializer {
 
                 bluetoothReader = reader;
                 activateReader(reader);
+                readerReady = true;
             }
         });
 
@@ -457,7 +458,7 @@ public class BluetoothReaderInitializer {
     }
 
     /* Disconnects an established connection. */
-    private void disconnectReader() {
+    public void disconnectReader() {
         if (bluetoothGatt == null) {
             return;
         }

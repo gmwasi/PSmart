@@ -30,6 +30,7 @@ public class CardReaderActivity extends AppCompatActivity {
     ArrayList<String> errors = new ArrayList<>();
     private BluetoothDevice bluetoothDevice;
     ProgressDialog progressDialog;
+    BluetoothReaderInitializer initializer = null;
 
 
     @Override
@@ -56,6 +57,7 @@ public class CardReaderActivity extends AppCompatActivity {
 
             } else {
                 Intent intent = new Intent(getBaseContext(),DeviceScanActivity.class);
+
                 startActivityForResult(intent,80);
             }
 
@@ -166,7 +168,7 @@ public class CardReaderActivity extends AppCompatActivity {
     private BluetoothReader connect(){
 
         if(bluetoothDevice == null){return null;}
-        BluetoothReaderInitializer initializer = new BluetoothReaderInitializer(this, bluetoothDevice.getAddress());
+        initializer = new BluetoothReaderInitializer(this, bluetoothDevice.getAddress());
         BluetoothReader reader = null;
         try {
             reader = initializer.getReader();
@@ -182,6 +184,12 @@ public class CardReaderActivity extends AppCompatActivity {
         return reader;
     }
 
+    private void disconnect(){
+        if(initializer != null){
+            initializer.disconnectReader();
+        }
+    }
+
     private Response read(){
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
@@ -190,6 +198,7 @@ public class CardReaderActivity extends AppCompatActivity {
             try {
                 Response response = pSmartCard.Read();
                 Log.d("Response" , response.getMessage());
+                disconnect();
                 return response;
             }catch (Exception e){
                 e.printStackTrace();
@@ -206,7 +215,9 @@ public class CardReaderActivity extends AppCompatActivity {
         if(bluetoothReader != null){
             try {
                 PSmartCard pSmartCard = new PSmartCard(bluetoothReader, this.getApplicationContext());
-                return pSmartCard.Write(shrmessage);
+                Response response = pSmartCard.Write(shrmessage);
+                disconnect();
+                return response;
             }catch (Exception e){
                 return  null;
             }

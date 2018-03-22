@@ -297,7 +297,7 @@ public class PSmartCard implements Card {
                 List<InternalPatientId> cardSerialIdentifiers = new ArrayList<>();
                 InternalPatientId cardserialnumberId = null;
                 for (InternalPatientId ipi : existingPatientIds) {
-                    if (ipi.getIdentifiertype() == "CARD_SERIAL_NUMBER") {
+                    if (ipi.getIdentifiertype().equals("CARD_SERIAL_NUMBER")) {
                         cardserialnumberId = new InternalPatientId();
                         cardserialnumberId.setidentifiertype(ipi.getIdentifiertype());
                         cardserialnumberId.setAssigningfacility(ipi.getAssigningfacility());
@@ -334,7 +334,7 @@ public class PSmartCard implements Card {
             if (existingPatientIds != null) {
                 List<InternalPatientId> cardSerialIdentifiers = new ArrayList<>();
                 for (InternalPatientId id : existingPatientIds ) {
-                    if (id.getIdentifiertype() == "CARD_SERIAL_NUMBER") {
+                    if (id.getIdentifiertype().equals("CARD_SERIAL_NUMBER")) {
                         cardSerialIdentifiers.add(id);
                     }
                 }

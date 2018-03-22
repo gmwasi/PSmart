@@ -123,7 +123,7 @@ public class CardReaderActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
                 setResult(RESULT_OK, intent);
-                Toast.makeText(getApplicationContext(), SHR, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), SHR, Toast.LENGTH_SHORT).show();
                 finish();
             }else{
                 Intent intent = new Intent();

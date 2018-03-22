@@ -187,6 +187,7 @@ public class CardReaderActivity extends AppCompatActivity {
     private void disconnect(){
         if(initializer != null){
             initializer.disconnectReader();
+
         }
     }
 

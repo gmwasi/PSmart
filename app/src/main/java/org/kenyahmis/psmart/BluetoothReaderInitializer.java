@@ -463,6 +463,7 @@ public class BluetoothReaderInitializer {
             return;
         }
         bluetoothGatt.disconnect();
+        readerReady = false;
     }
 
 

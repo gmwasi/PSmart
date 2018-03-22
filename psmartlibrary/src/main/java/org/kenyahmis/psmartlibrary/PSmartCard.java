@@ -51,7 +51,7 @@ public class PSmartCard implements Card {
     public ReadResponse Read() {
 
         ReadResponse response = (ReadResponse) reader.ReadCard();
-        String cardSerial = reader.getCardSerial();
+        //String cardSerial = reader.getCardSerial();
         List<String> errorList = new ArrayList<>();
 
         if(response.getErrors().isEmpty())

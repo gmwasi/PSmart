@@ -99,6 +99,22 @@ class AcrBluetooth implements CardReader {
 
         SHRMessage shrMessage = new SHRMessage();
         List<String> errors = new ArrayList<>();
+        CardDetail cardDetail = new CardDetail();
+        Immunization[] immunizationArray = new Immunization[0];
+        ExternalPatientId externalPatientId = new ExternalPatientId();
+        MotherIdentifier[] motherIdentifier = new MotherIdentifier[0];
+        PatientIdentification patientIdentification = new PatientIdentification();
+        InternalPatientId[] internalPatientId = new InternalPatientId[0];
+        List<MotherIdentifier> motherIdentifierList = new ArrayList<>();
+        List<InternalPatientId> InternalPatientIdList = new ArrayList<>();
+        List<HIVTest> hivTestsList = new ArrayList<>();
+
+        HIVTest[] hivTestsArray = new HIVTest[0];
+
+        FullName motherName = new FullName();
+
+        PatientAddress address = new PatientAddress();
+
         String serializedSHRString = "";
         // read immunization
         try {
@@ -122,22 +138,32 @@ class AcrBluetooth implements CardReader {
             //fetchCardSerialFromCard();
             bluetoothReader.powerOffCard();
 
-            CardDetail cardDetail = deserializer.deserialize(CardDetail.class, cardDetails);
-            Immunization[] immunizationArray = deserializer.deserialize(Immunization[].class, immunizationDetails);
-            PatientAddress address = deserializer.deserialize(PatientAddress.class, patientAddress);
-            FullName motherName = deserializer.deserialize(FullName.class, mothersName);
-            ExternalPatientId externalPatientId = deserializer.deserialize(ExternalPatientId.class, patientExternalIdentifiers);
+            if(!cardDetails.equals(""))
+                cardDetail = deserializer.deserialize(CardDetail.class, cardDetails);
+            if(!immunizationDetails.equals("[]"))
+                immunizationArray = deserializer.deserialize(Immunization[].class, immunizationDetails);
+            if(!patientAddress.equals(""))
+                address = deserializer.deserialize(PatientAddress.class, patientAddress);
+            if(!mothersName.equals(""))
+                motherName = deserializer.deserialize(FullName.class, mothersName);
+            if(!patientExternalIdentifiers.equals(""))
+                externalPatientId = deserializer.deserialize(ExternalPatientId.class, patientExternalIdentifiers);
+            if(!motherIdentifiers.equals("[]")){
+                motherIdentifier = deserializer.deserialize(MotherIdentifier[].class, motherIdentifiers);
+                motherIdentifierList = new ArrayList<>();
+                for (MotherIdentifier mId : motherIdentifier) {
+                    motherIdentifierList.add(mId);
+                }
+            }
 
-            MotherIdentifier[] motherIdentifier = deserializer.deserialize(MotherIdentifier[].class, motherIdentifiers);
-            List<MotherIdentifier> motherIdentifierList = new ArrayList<>();
-            for (MotherIdentifier mId : motherIdentifier) {
-                motherIdentifierList.add(mId);
+            if(!patientInternalIdentifiers.equals("[]")) {
+                internalPatientId = deserializer.deserialize(InternalPatientId[].class, patientInternalIdentifiers);
+                InternalPatientIdList = new ArrayList<>();
+                for (InternalPatientId pId : internalPatientId) {
+                    InternalPatientIdList.add(pId);
+                }
             }
-            InternalPatientId[] internalPatientId = deserializer.deserialize(InternalPatientId[].class, patientInternalIdentifiers);
-            List<InternalPatientId> InternalPatientIdList = new ArrayList<>();
-            for (InternalPatientId pId : internalPatientId) {
-                InternalPatientIdList.add(pId);
-            }
+
 
             MotherDetail motherDetail = new MotherDetail();
             motherDetail.setMotherIdentifiers(motherIdentifierList);
@@ -146,7 +172,9 @@ class AcrBluetooth implements CardReader {
             StringBuilder sb = new StringBuilder(patientName.trim());
 
             String val = "{ 'PATIENT_NAME':" + sb.substring(1, sb.length()-1) + "}";
-            PatientIdentification patientIdentification = deserializer.deserialize(PatientIdentification.class, val);
+            if(!patientName.equals("[]"))
+                patientIdentification = deserializer.deserialize(PatientIdentification.class, val);
+
             patientIdentification.setInternalpatientids(InternalPatientIdList);
             patientIdentification.setExternalpatientid(externalPatientId);
             patientIdentification.setPatientaddress(address);
@@ -157,11 +185,12 @@ class AcrBluetooth implements CardReader {
             for (Immunization immunization : immunizationArray) {
                 immunizations.add(immunization);
             }
-
-            HIVTest[] hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTests);
-            List<HIVTest> hivTestsList = new ArrayList<>();
-            for (HIVTest hivTest : hivTestsArray) {
-                hivTestsList.add(hivTest);
+            if(!hivTests.equals("[]")) {
+                hivTestsArray = deserializer.deserialize(HIVTest[].class, hivTests);
+                hivTestsList = new ArrayList<>();
+                for (HIVTest hivTest : hivTestsArray) {
+                    hivTestsList.add(hivTest);
+                }
             }
 
 
@@ -224,7 +253,7 @@ class AcrBluetooth implements CardReader {
         StringBuilder builder = new StringBuilder();
         for(int i=0; i<255;i++) {
             String readData = readUserFile(userFile, getByte(i));
-            if(readData.startsWith("ÿÿÿ")){
+            if(readData.startsWith("ÿÿÿ")||readData.startsWith("i")|| readData.equals("")){
                 break;
             }
             builder.append(readData).append(",");
@@ -254,7 +283,11 @@ class AcrBluetooth implements CardReader {
             // read first record of user file selected
             //TODO: displayOut(0, 0, "\nRead Record");
             data = readRecord( recordNumber, (byte)0x00, dataLen);
-            if (data.length > 0)readMsg = Utils.byteArrayToString(data, data.length);
+            if(data!=null)
+                if (data.length > 0)readMsg = Utils.byteArrayToString(data, data.length);
+            if(readMsg.startsWith("ÿÿÿ")||readMsg.startsWith("i")){
+                readMsg = "";
+            }
             //SmartCardUtils.displayOut(loggerWidget, ">>Data from Smart Card: \n " + readMsg);
 
         }
@@ -1087,8 +1120,10 @@ class AcrBluetooth implements CardReader {
         setApduResponse((apduCommand), "SerialNumber");
         byte[] res = apduCommand.getResponseApdu();
         byte[] trimmedRes = new byte[8];
-        System.arraycopy(res, 0, trimmedRes, 0, res.length-2);
-        cardSerial = Utils.convertSerialByteToString(trimmedRes);
+        if(res!=null) {
+            System.arraycopy(res, 0, trimmedRes, 0, res.length - 2);
+            cardSerial = Utils.convertSerialByteToString(trimmedRes);
+        }
         return res;
     }
 }

@@ -254,7 +254,8 @@ class AcrBluetooth implements CardReader {
             // read first record of user file selected
             //TODO: displayOut(0, 0, "\nRead Record");
             data = readRecord( recordNumber, (byte)0x00, dataLen);
-            if (data.length > 0)readMsg = Utils.byteArrayToString(data, data.length);
+            if(data!=null)
+                if (data.length > 0)readMsg = Utils.byteArrayToString(data, data.length);
             //SmartCardUtils.displayOut(loggerWidget, ">>Data from Smart Card: \n " + readMsg);
 
         }

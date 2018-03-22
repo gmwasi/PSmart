@@ -119,20 +119,25 @@ public class PSmartCard implements Card {
             }
 
             String serial = reader.getCardSerial();
-            InternalPatientId cardserialInternalId = new InternalPatientId();
-            cardserialInternalId.setID(serial);
-            cardserialInternalId.setAssigningauthority("CARD_REGISTRY");
-            cardserialInternalId.setAssigningfacility("HTS_APP");
-            cardserialInternalId.setidentifiertype("CARD_SERIAL_NUMBER");
-
-            if(finalSHR.getPatientIdentification() != null)
-            {
-                if(finalSHR.getPatientIdentification().getInternalpatientids() != null)
-                {
-                    List<InternalPatientId> internalPatientIds = finalSHR.getPatientIdentification().getInternalpatientids();
-                    internalPatientIds.add(cardserialInternalId);
-                    finalSHR.getPatientIdentification().setInternalpatientids(internalPatientIds);
+            InternalPatientId cardSerialID = getCardSerialIdentifier(finalSHR);
+            if(cardSerialID!=null){
+                if(!validateSerialFromCard(cardSerialID.getID())){
+                    List<String> errs = new ArrayList<>();
+                    errs.add("Serial provided does not match with card serial");
+                    return new WriteResponse("", errs);
                 }
+            }
+
+            else {
+                List<InternalPatientId> existingPatientIds = finalSHR.getPatientIdentification().getInternalpatientids();
+                InternalPatientId cardserialInternalId = new InternalPatientId();
+                cardserialInternalId.setID(serial);
+                cardserialInternalId.setAssigningauthority("CARD_REGISTRY");
+                cardserialInternalId.setAssigningfacility("HTS_APP");
+                cardserialInternalId.setidentifiertype("CARD_SERIAL_NUMBER");
+
+                existingPatientIds.add(cardserialInternalId);
+                finalSHR.getPatientIdentification().setInternalpatientids(existingPatientIds);
             }
 
             List<String> demographics = new ArrayList<>();
@@ -276,6 +281,36 @@ public class PSmartCard implements Card {
                 break;
         }
         return stringArr;
+    }
+
+    private InternalPatientId getCardSerialIdentifier(SHRMessage shr){
+        if(shr.getPatientIdentification() != null) {
+            List<InternalPatientId> existingPatientIds = shr.getPatientIdentification().getInternalpatientids();
+            if (existingPatientIds != null) {
+                InternalPatientId cardserialnumberId = null;
+                for (InternalPatientId ipi : existingPatientIds) {
+                    if (ipi.getIdentifiertype() == "CARD_SERIAL_NUMBER") {
+                        cardserialnumberId = new InternalPatientId();
+                        cardserialnumberId.setidentifiertype(ipi.getIdentifiertype());
+                        cardserialnumberId.setAssigningfacility(ipi.getAssigningfacility());
+                        cardserialnumberId.setID(ipi.getID());
+                        cardserialnumberId.setAssigningauthority(ipi.getAssigningauthority());
+                        break;
+                    }
+                }
+
+                return cardserialnumberId;
+            }
+        }
+        return null;
+    }
+
+    private boolean validateSerialFromCard(String serialFromShr){
+        String serialFromCard = reader.getCardSerial();
+        if(serialFromCard!=null && serialFromCard!=""){
+            return serialFromCard.trim().equals(serialFromShr.trim());
+        }
+        return false;
     }
 
     public ReadResponse MockRead() {

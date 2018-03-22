@@ -419,7 +419,7 @@ public class BluetoothReaderInitializer {
         }
     }
 
-    private boolean connectReader() {
+    public boolean connectReader() {
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         if (bluetoothManager == null) {
             Log.w(TAG, "Unable to initialize BluetoothManager.");

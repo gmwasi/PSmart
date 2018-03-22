@@ -169,11 +169,14 @@ public class CardReaderActivity extends AppCompatActivity {
 
         if(bluetoothDevice == null){return null;}
         initializer = new BluetoothReaderInitializer(this, bluetoothDevice.getAddress());
+        try{Thread.sleep(2000);} catch (Exception ex){}
         BluetoothReader reader = null;
         try {
             reader = initializer.getReader();
             if(reader == null){
                 // display error
+                initializer.connectReader();
+                reader = initializer.getReader();
             }
         }
 

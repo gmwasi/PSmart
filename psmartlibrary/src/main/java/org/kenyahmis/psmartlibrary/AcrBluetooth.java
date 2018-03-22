@@ -1088,8 +1088,10 @@ class AcrBluetooth implements CardReader {
         setApduResponse((apduCommand), "SerialNumber");
         byte[] res = apduCommand.getResponseApdu();
         byte[] trimmedRes = new byte[8];
-        System.arraycopy(res, 0, trimmedRes, 0, res.length-2);
-        cardSerial = Utils.convertSerialByteToString(trimmedRes);
+        if(res!=null) {
+            System.arraycopy(res, 0, trimmedRes, 0, res.length - 2);
+            cardSerial = Utils.convertSerialByteToString(trimmedRes);
+        }
         return res;
     }
 }

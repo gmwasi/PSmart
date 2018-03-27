@@ -19,8 +19,13 @@ import android.widget.Toast;
 
 import com.acs.bluetooth.BluetoothReader;
 
+import org.kenyahmis.psmartlibrary.Models.ReadResponse;
+import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
+import org.kenyahmis.psmartlibrary.Models.TransmissionMessage;
+import org.kenyahmis.psmartlibrary.Models.WriteResponse;
 import org.kenyahmis.psmartlibrary.PSmartCard;
 import org.kenyahmis.psmartlibrary.Models.Response;
+import org.kenyahmis.psmartlibrary.Serializer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -119,7 +124,7 @@ public class CardReaderActivity extends AppCompatActivity {
         protected void onPostExecute(Response response) {
             super.onPostExecute(response);
             hideDialog();
-            if(response!=null){
+            if(response.isSuccessful()){
                 Intent intent = new Intent();
                 intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
                 setResult(RESULT_OK, intent);
@@ -127,8 +132,10 @@ public class CardReaderActivity extends AppCompatActivity {
                 finish();
             }else{
                 Intent intent = new Intent();
-                errors.add("Could not read");
-                intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+                for (String error : response.getErrors()) {
+                    errors.add(error);
+                }
+                intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS, errors);
                 setResult(RESULT_CANCELED, intent);
                 finish();
             }
@@ -145,15 +152,17 @@ public class CardReaderActivity extends AppCompatActivity {
         protected void onPostExecute(Response response) {
             super.onPostExecute(response);
             hideDialog();
-            if(response!=null){
+            if(response.isSuccessful()){
                 Intent intent = new Intent();
                 intent.putExtra(AppConstants.EXTRA_MESSAGE,response.getMessage());
                 setResult(RESULT_OK, intent);
                 finish();
             }else{
                 Intent intent = new Intent();
-                errors.add("Could not write to card");
-                intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS,errors);
+                for (String error : response.getErrors()) {
+                    errors.add(error);
+                }
+                intent.putStringArrayListExtra(AppConstants.EXTRA_ERRORS, errors);
                 setResult(RESULT_CANCELED, intent);
                 finish();
             }
@@ -195,39 +204,49 @@ public class CardReaderActivity extends AppCompatActivity {
     }
 
     private Response read(){
+        Response response;
+        List<String> errorList = new ArrayList<>();
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
-
             PSmartCard pSmartCard = new PSmartCard(bluetoothReader, this.getApplicationContext());
             try {
-                Response response = pSmartCard.Read();
+                response = pSmartCard.Read();
                 Log.d("Response" , response.getMessage());
                 disconnect();
-                return response;
             }catch (Exception e){
                 e.printStackTrace();
-                return null;
+                errorList.add(e.getMessage());
+                response = new ReadResponse("",errorList);
             }
-
         }
-
-        return null;
+        else{
+            errorList.add("Bluetooth reader not connected successfully!");
+            response = new ReadResponse("", errorList);
+        }
+        return response;
     }
 
-    private Response write(String shrmessage){
+    private Response write(String shrMessage){
+        Response response;
+        List<String> errorList = new ArrayList<>();
         BluetoothReader bluetoothReader = connect();
         if(bluetoothReader != null){
             try {
                 PSmartCard pSmartCard = new PSmartCard(bluetoothReader, this.getApplicationContext());
-                Response response = pSmartCard.Write(shrmessage);
+                response = pSmartCard.Write(shrMessage);
                 disconnect();
-                return response;
             }catch (Exception e){
-                return  null;
+                e.printStackTrace();
+                errorList.add(e.getMessage());
+                response = new WriteResponse("",errorList);
             }
 
         }
-        return null;
+        else {
+            errorList.add("Bluetooth reader not connected successfully!");
+            response = new WriteResponse("", errorList);
+        }
+        return response;
     }
 
     private void errorMessage(String ... messages){

@@ -209,45 +209,6 @@ class AcrBluetooth implements CardReader {
         return new ReadResponse(serializer.serialize(shrMessage), errors);
     }
 
-    //@Override
-    public Response ReadCards() {
-
-        String shrStr = null;
-        List<String> errors = new ArrayList<>();
-        try {
-            authenticated = false;
-            authenticate();
-            if(!checkIfAuthenticated()){
-
-            }
-            bluetoothReader.powerOnCard();
-
-            shrStr = "{\n";
-            shrStr += "\t\"CARD_DETAILS\": " +  readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), (byte)0x00 );
-            shrStr += ", \t\"IMMUNIZATION\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME)) + "]";
-            shrStr += ",\t\"HIV_TEST\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME))+ "]";
-
-            shrStr += ", \t\"PATIENT_IDENTIFICATION\": {\n";
-            shrStr += "  \t\"PATIENT_NAME\": " + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
-
-            shrStr += ", \t\"EXTERNAL_PATIENT_ID\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), (byte)0x00);
-            shrStr += ", \t\"INTERNAL_PATIENT_ID\": [" + readArray(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME)) + "]";
-            shrStr += ", \t\"PATIENT_ADDRESS\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), (byte)0x00);
-            shrStr += ", \t\"MOTHER_DETAILS\": { \n\t\"MOTHER_NAME\": " + readUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), (byte)0x00);
-            shrStr += "\n}";
-
-            // card serial
-            //fetchCardSerialFromCard();
-            queryCardSerial();
-
-            bluetoothReader.powerOffCard();
-        } catch (Exception e) {
-            e.printStackTrace();
-            errors.add(e.getMessage());
-        }
-        return new ReadResponse(shrStr, errors);
-    }
-
     @Override
     public String readArray(UserFile userFile) {
         StringBuilder builder = new StringBuilder();

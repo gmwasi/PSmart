@@ -51,23 +51,13 @@ public class PSmartCard implements Card {
     public ReadResponse Read() {
 
         ReadResponse response = (ReadResponse) reader.ReadCard();
-        //String cardSerial = reader.getCardSerial();
         List<String> errorList = new ArrayList<>();
 
         if(response.getErrors().isEmpty())
         {
             String serializedSHR = "";
             SHRMessage shrMessage = deserializer.deserialize(SHRMessage.class, response.getMessage());
-
-//            InternalPatientId internalPatientId = new InternalPatientId();
-//            internalPatientId.setID(cardSerial);
-//            internalPatientId.setidentifiertype("CARD_SERIAL_NUMBER");
-//            internalPatientId.setAssigningfacility("");
-//            internalPatientId.setAssigningauthority("CARD_REGISTRY");
-//            shrMessage.getPatientIdentification().getInternalpatientids().add(internalPatientId);
             serializedSHR = serializer.serialize(shrMessage);
-            //response = new ReadResponse(serializedSHR, new ArrayList<String>());
-
             PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
             try {
                 file.write(serializedSHR);
@@ -83,7 +73,9 @@ public class PSmartCard implements Card {
 
     @Override
     public Response Write(String shr){
-
+        Serializer serializer = new Serializer();
+        Response response;
+        List<String> errorList = new ArrayList<>();
         try {
             SHRMessage incomingSHR = deserializer.deserialize(SHRMessage.class, shr);
             boolean isRead = false;
@@ -239,17 +231,17 @@ public class PSmartCard implements Card {
             String encryptedSHR = encryption.encrypt(EncrytionKeys.SHR_KEY, shr);
             TransmissionMessage transmitMessage = new TransmissionMessage(encryptedSHR, addendum);
             String transmitString = serializer.serialize(transmitMessage);
-            Response response = new WriteResponse(transmitString, null);
+            response = new WriteResponse(transmitString, null);
             Log.i("WRITE_RESPONSE", transmitString);
 
             file.write("");
-            return response;
         }
 
         catch (Exception ex){
-            ex.printStackTrace();
-            return null;
+            errorList.add("Bluetooth reader not connected successfully!");
+            response = new WriteResponse("", errorList);
         }
+        return response;
     }
 
     public List<String> getStringArr(SHRMessage shr, String context){

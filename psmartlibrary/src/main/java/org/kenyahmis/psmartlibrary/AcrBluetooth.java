@@ -10,8 +10,6 @@ import com.acs.bluetooth.BluetoothReader;
 
 import org.kenyahmis.psmartlibrary.AcosCard.OptionRegister;
 import org.kenyahmis.psmartlibrary.AcosCard.SecurityOptionRegister;
-import org.kenyahmis.psmartlibrary.DAL.FileNames;
-import org.kenyahmis.psmartlibrary.DAL.PSmartFile;
 import org.kenyahmis.psmartlibrary.Models.AcosCommand;
 import org.kenyahmis.psmartlibrary.Models.ApduCommand;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
@@ -296,7 +294,7 @@ class AcrBluetooth implements CardReader {
         }
         catch(Exception exception)
         {
-            Log.e("An Error Occurred", exception.getMessage());
+            if (BuildConfig.DEBUG) Log.e("An Error Occurred", exception.getMessage());
             exception.printStackTrace();
         }
         return null;
@@ -367,7 +365,7 @@ class AcrBluetooth implements CardReader {
                                 BluetoothReader bluetoothReader,
                                 final int batteryStatus) {
 
-                            Log.i(TAG, "mBatteryStatusListener data: "
+                            if (BuildConfig.DEBUG) Log.i(TAG, "mBatteryStatusListener data: "
                                     + batteryStatus);
                         }
 
@@ -381,7 +379,7 @@ class AcrBluetooth implements CardReader {
                                 BluetoothReader bluetoothReader,
                                 final int batteryLevel) {
 
-                            Log.i(TAG, "mBatteryLevelListener data: "
+                            if (BuildConfig.DEBUG) Log.i(TAG, "mBatteryLevelListener data: "
                                     + batteryLevel);
                         }
 
@@ -397,7 +395,7 @@ class AcrBluetooth implements CardReader {
                     public void onCardStatusChange(
                             BluetoothReader bluetoothReader, final int sta) {
 
-                        Log.i(TAG, "mCardStatusListener sta: " + sta);
+                        if (BuildConfig.DEBUG) Log.i(TAG, "mCardStatusListener sta: " + sta);
                     }
                 });
     }
@@ -455,7 +453,7 @@ class AcrBluetooth implements CardReader {
                         responseInHexString = getResponseString(apdu, errorCode);
                         responseApdu = apdu;
                         apduAvailable = true;
-                       // Log.i("RESPONSE: ", "apdu - "+ responseInHexString + " error - "+errorCode);
+                       // if (BuildConfig.DEBUG) Log.i("RESPONSE: ", "apdu - "+ responseInHexString + " error - "+errorCode);
                     }
 
                 });
@@ -499,7 +497,7 @@ class AcrBluetooth implements CardReader {
                         public void onBatteryLevelAvailable(
                                 BluetoothReader bluetoothReader,
                                 final int batteryLevel, int status) {
-                            Log.i(TAG, "mBatteryLevelListener data: "
+                            if (BuildConfig.DEBUG) Log.i(TAG, "mBatteryLevelListener data: "
                                     + batteryLevel);
 
 
@@ -925,11 +923,11 @@ class AcrBluetooth implements CardReader {
         }
         if(apduAvailable){
             apduCommand.setResponseApdu(responseApdu);
-            Log.i(tag, "ok");
+            if (BuildConfig.DEBUG) Log.i(tag, "ok");
         }
 
         else
-            Log.e(tag, "fail");
+            if (BuildConfig.DEBUG) Log.e(tag, "fail");
     }
 
     private void formatCard()

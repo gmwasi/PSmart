@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'psmart'
+            keyPassword 'c0nstella'
+            storeFile file('C:/Coffer/Palladium/psmart.jks')
+            storePassword 'c0nstella'
+        }
+    }
     compileSdkVersion 26
     defaultConfig {
         applicationId "org.kenyahmis.psmart"

@@ -8,24 +8,18 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.acs.bluetooth.BluetoothReader;
 
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
-import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
-import org.kenyahmis.psmartlibrary.Models.TransmissionMessage;
 import org.kenyahmis.psmartlibrary.Models.WriteResponse;
 import org.kenyahmis.psmartlibrary.PSmartCard;
 import org.kenyahmis.psmartlibrary.Models.Response;
-import org.kenyahmis.psmartlibrary.Serializer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,7 +205,7 @@ public class CardReaderActivity extends AppCompatActivity {
             PSmartCard pSmartCard = new PSmartCard(bluetoothReader, this.getApplicationContext());
             try {
                 response = pSmartCard.Read();
-                Log.d("Response" , response.getMessage());
+                if (BuildConfig.DEBUG) Log.d("Response" , response.getMessage());
                 disconnect();
             }catch (Exception e){
                 e.printStackTrace();

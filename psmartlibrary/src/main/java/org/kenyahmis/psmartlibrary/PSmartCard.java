@@ -7,20 +7,15 @@ import com.acs.bluetooth.BluetoothReader;
 
 import org.kenyahmis.psmartlibrary.DAL.FileNames;
 import org.kenyahmis.psmartlibrary.DAL.PSmartFile;
-import org.kenyahmis.psmartlibrary.Models.AcosCardResponse;
 import org.kenyahmis.psmartlibrary.Models.Addendum.Addendum;
 import org.kenyahmis.psmartlibrary.Models.Addendum.Identifier;
 import org.kenyahmis.psmartlibrary.Models.ReadResponse;
 import org.kenyahmis.psmartlibrary.Models.Response;
-import org.kenyahmis.psmartlibrary.Models.SHR.CardDetail;
-import org.kenyahmis.psmartlibrary.Models.SHR.HIVTest;
-import org.kenyahmis.psmartlibrary.Models.SHR.Immunization;
 import org.kenyahmis.psmartlibrary.Models.SHR.InternalPatientId;
 import org.kenyahmis.psmartlibrary.Models.SHR.SHRMessage;
 import org.kenyahmis.psmartlibrary.Models.TransmissionMessage;
 import org.kenyahmis.psmartlibrary.Models.WriteResponse;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,20 +79,20 @@ public class PSmartCard implements Card {
             PSmartFile file = new PSmartFile(context, FileNames.SHRFileName);
             try {
                 readFromFile = file.read();
-                Log.i("File", readFromFile);
+                if (BuildConfig.DEBUG) Log.i("File", readFromFile);
                 if(readFromFile == "")
                 {
                     readFromFile = Read().getMessage();
                     isRead =true;
-                    Log.i("File", "Read from card");
+                    if (BuildConfig.DEBUG) Log.i("File", "Read from card");
                 }
             }
             catch (Exception ex){
                 readFromFile = Read().getMessage();
                 isRead =true;
-                Log.i("File", "Read from card");
+                if (BuildConfig.DEBUG) Log.i("File", "Read from card");
             }
-            Log.i("SHR from card", readFromFile);
+            if (BuildConfig.DEBUG) Log.i("SHR from card", readFromFile);
             shrFromCard = deserializer.deserialize(SHRMessage.class, readFromFile);
 
             Diff diff = new Diff(shrFromCard, incomingSHR);
@@ -164,25 +159,25 @@ public class PSmartCard implements Card {
 
             //write user files
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.CARD_DETAILS_USER_FILE_NAME), cardDetails, (byte)0x00);
-            Log.i("cardDetails","ok");
+            if (BuildConfig.DEBUG) Log.i("cardDetails","ok");
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_EXTERNAL_NAME), patientExternalIdentifiers, (byte)0x00);
-            Log.i("patientExternal","ok");
+            if (BuildConfig.DEBUG) Log.i("patientExternal","ok");
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_ADDRESS_NAME), addressDetails, (byte)0x00);
-            Log.i("addressDetails","ok");
+            if (BuildConfig.DEBUG) Log.i("addressDetails","ok");
             reader.writeUserFile(SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_DETAIL_NAME), motherDetails, (byte)0x00);
-            Log.i("motherDetails","ok");
+            if (BuildConfig.DEBUG) Log.i("motherDetails","ok");
 
             //write arrays
             reader.writeArray(immunizationDetails, SmartCardUtils.getUserFile(SmartCardUtils.IMMUNIZATION_USER_FILE_NAME));
-            Log.i("immunizationDetails","ok");
+            if (BuildConfig.DEBUG) Log.i("immunizationDetails","ok");
             reader.writeArray(hivTests, SmartCardUtils.getUserFile(SmartCardUtils.HIV_TEST_USER_FILE_NAME));
-            Log.i("hivTests","ok");
+            if (BuildConfig.DEBUG) Log.i("hivTests","ok");
             reader.writeArray(internalIdentifiers, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_INTERNAL_NAME));
-            Log.i("internalIdentifiers","ok");
+            if (BuildConfig.DEBUG) Log.i("internalIdentifiers","ok");
             reader.writeArray(demographics, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_DEMOGRAPHICS_NAME));
-            Log.i("demographics","ok");
+            if (BuildConfig.DEBUG) Log.i("demographics","ok");
             reader.writeArray(motherIdentifiers, SmartCardUtils.getUserFile(SmartCardUtils.IDENTIFIERS_USER_FILE_MOTHER_IDENTIFIER_NAME));
-            Log.i("motherIdentifiers","ok");
+            if (BuildConfig.DEBUG) Log.i("motherIdentifiers","ok");
 
 
             reader.powerOff();
@@ -232,13 +227,13 @@ public class PSmartCard implements Card {
             TransmissionMessage transmitMessage = new TransmissionMessage(encryptedSHR, addendum);
             String transmitString = serializer.serialize(transmitMessage);
             response = new WriteResponse(transmitString, null);
-            Log.i("WRITE_RESPONSE", transmitString);
+            if (BuildConfig.DEBUG) Log.i("WRITE_RESPONSE", transmitString);
 
             file.write("");
         }
 
         catch (Exception ex){
-            errorList.add("Bluetooth reader not connected successfully!");
+            errorList.add(ex.getMessage());
             response = new WriteResponse("", errorList);
         }
         return response;

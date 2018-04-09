@@ -1,10 +1,15 @@
 apply plugin: 'com.android.library'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'psmart'
+            keyPassword 'c0nstella'
+            storeFile file('psmart')
+            storePassword 'c0nstella'
+        }
+    }
     compileSdkVersion 26
-
-
-
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 26
@@ -14,14 +19,12 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {

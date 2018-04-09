@@ -255,7 +255,8 @@ class AcrBluetooth implements CardReader {
             //SmartCardUtils.displayOut(loggerWidget, exception.getMessage().toString() + "\r\n");
             exception.printStackTrace();
         }
-        return readMsg;
+        Encryption encryption = new Encryption();
+        return encryption.decrypt(EncrytionKeys.SHR_KEY, readMsg);
     }
 
     @Override
@@ -265,6 +266,8 @@ class AcrBluetooth implements CardReader {
         int expLength = 0;
         String tmpStr = "";
         byte[] tmpArray = new byte[56];
+        Encryption encryption = new Encryption();
+        String encryptedData = encryption.encrypt(EncrytionKeys.SHR_KEY, data);
 
         try
         {
@@ -274,10 +277,10 @@ class AcrBluetooth implements CardReader {
             // Select user file
             selectFile(fileId);
 
-            tmpStr = data;
+            tmpStr = encryptedData;
             tmpArray = new byte[expLength];
             int indx = 0;
-            while (indx < data.length())
+            while (indx < encryptedData.length())
             {
                 tmpArray[indx] = tmpStr.getBytes()[indx];
                 indx++;

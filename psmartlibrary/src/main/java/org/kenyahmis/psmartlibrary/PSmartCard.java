@@ -112,7 +112,7 @@ public class PSmartCard implements Card {
 
             String serial = reader.getCardSerial();
             InternalPatientId cardSerialID = getCardSerialIdentifier(finalSHR);
-            if(cardSerialID!=null){
+            if(cardSerialID!=null && !cardSerialID.getID().equals("")){
                 if(!validateSerialFromCard(cardSerialID.getID())){
                     List<String> errs = new ArrayList<>();
                     errs.add("Serial provided does not match with card serial");
@@ -311,12 +311,7 @@ public class PSmartCard implements Card {
         boolean valid = false;
         String serialFromCard = reader.getCardSerial();
         if(serialFromCard!=null && serialFromCard!=""){
-            if(serialFromShr.equals("")){
-                valid = true;
-            }
-            else{
                 valid = serialFromCard.trim().equals(serialFromShr.trim());
-            }
         }
         return valid;
     }

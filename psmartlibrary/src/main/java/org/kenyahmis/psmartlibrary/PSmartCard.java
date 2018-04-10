@@ -308,11 +308,17 @@ public class PSmartCard implements Card {
     }
 
     private boolean validateSerialFromCard(String serialFromShr){
+        boolean valid = false;
         String serialFromCard = reader.getCardSerial();
         if(serialFromCard!=null && serialFromCard!=""){
-            return serialFromCard.trim().equals(serialFromShr.trim());
+            if(serialFromShr.equals("")){
+                valid = true;
+            }
+            else{
+                valid = serialFromCard.trim().equals(serialFromShr.trim());
+            }
         }
-        return false;
+        return valid;
     }
 
     private SHRMessage removeAllCardSerialIdentifiers(SHRMessage shrMessage){
